@@ -19,13 +19,37 @@ display.set_backlight(backlight_intensity)
 tile_size = 12 # size in pixels of square tiles
 grid_w, grid_h = 20, 11 # 20*11 tiles
 
+
+walls = []
+
+def load_level(level_number):
+    filename = "level-" + str(level_number) + ".txt"
+    f = open(filename, "r")
+
+    lines = f.readlines()
+
+    y = 0
+
+    global walls
+
+    walls = []
+
+    for y, line in enumerate(lines):
+        for x, char in enumerate(line):
+            if 0 <= x < grid_w and 0 <= y < grid_h and char == '0':
+                wall_pos = x, y
+                walls.append(wall_pos)
+
+        
+    f.close()
+
 score = 0
 frameCount = 0
 
 # initialize some color data
 snake_color = (0, 200, 0)
 food_color  = (200, 0, 0)
-wall_color  = (255, 0, 255)
+wall_color  = (200, 0, 200)
 title_color = (255, 255, 0)
 score_color = (255, 255, 255)
 
@@ -43,7 +67,7 @@ class Food:
         
         global snake
         
-        while snake.contains(new_pos):
+        while snake.contains(new_pos) or check_walls(new_pos):
             new_pos = randint(1, grid_w-2), randint(1, grid_h-2)
             #print("placed food inside snake, redoing...")
             
@@ -245,6 +269,12 @@ class Snake:
                 
         self.direction = x_dir, y_dir
 
+def check_walls(pos):
+    for wall in walls:
+        if pos == wall:
+            return True
+    
+    return False
         
 class SnakeNode:
     def __init__(self, position=None, direction=None, next=None, prev=None):
@@ -306,6 +336,11 @@ def update_inputs(display):
     pressed['X'] = display.is_pressed(display.BUTTON_X)
     pressed['Y'] = display.is_pressed(display.BUTTON_Y)
     
+    global recorded_inputs
+    
+    if any_button(pressed) and demo_mode == False:
+        recorded_inputs.append((frameCount, pressed))
+    
     return pressed
 
 
@@ -320,37 +355,149 @@ def show_title_screen(display):
     display.text("PiCo", int(width/6), int(height/16), 10, 8)
     display.text("Snake", int(width/16), int(height/2), 10, 8)
     
+def show_level_name(display):
+    title_red, title_green, title_blue = title_color
+    display.set_pen(title_red, title_green, title_blue)
     
-def show_game_over(display):    
+    display.text("Level", int(width/12), int(height/16), 10, 8)
+    display.text(str(level_number), int(7*width/16), int(height/2), 10, 8)
+    
+def show_lives_left(display):
+    title_red, title_green, title_blue = title_color
+    display.set_pen(title_red, title_green, title_blue)
+    
+    display.text("Lives", int(width/12), int(height/16), 10, 8)
+    display.text(str(lives_left), int(width/16), int(height/2), 10, 8)
+    
+def show_score(display):    
     score_red, score_green, score_blue = score_color
     display.set_pen(score_red, score_green, score_blue)
     
     display.text("SCORE", int(width/16), int(height/16), 10, 8)
     display.text(str(score), int(2*width/5), int(height/2), 10, 8)
+    
+def show_game_over(display):    
+    score_red, score_green, score_blue = score_color
+    display.set_pen(score_red, score_green, score_blue)
+    
+    display.text("Game", int(width/6), int(height/16), 10, 8)
+    display.text("Over", int(width/16), int(height/2), 10, 8)
 
 
 def draw_background(display):
     wall_red, wall_blue, wall_green = wall_color
     display.set_pen(wall_red, wall_blue, wall_green)
-    #display.clear()    
+        
     
     display.set_pen(0, 0, 0)
-    display.rectangle(2, 2, 236, 128) # arena
+    display.clear()
+    #display.rectangle(2, 2, 236, 128) # arena
     
     
 def draw_game_objects(display):        
-    food.show(display)    
-    snake.show(display)        
+    food.show(display)   
+    draw_walls(display) 
+    snake.show(display)
+
+def draw_walls(display):
+    wall_red, wall_blue, wall_green = wall_color
+    
+    for wall in walls:
+        grid_x, grid_y = wall
+        tile_x = grid_x * tile_size
+        tile_y = grid_y * tile_size
+        
+        display.set_pen(wall_red, wall_blue, wall_green)
+        display.rectangle(tile_x, tile_y, tile_size, tile_size)
+        display.set_pen(wall_red//2, wall_blue//2, wall_green//2)
+        display.rectangle(tile_x+2, tile_y+2, tile_size-4, tile_size-4)
+        
+#         canvas_x = (tile_size * grid_x)
+#         canvas_y = (tile_size * grid_y)
+#         
+#         center_x = canvas_x+(tile_size//2)
+#         center_y = canvas_y+(tile_size//2)
+#         radius = (tile_size-4)//2
+#         
+#         display.circle(center_x, center_y, radius)
+        
+level_number = 0
+total_levels = 4
 
     
 game_state = {"title_screen": 0,
-              "playing": 1,
-              "game_over": 2}
+              "level_name": 1,          
+              "lives_left": 2,
+              "playing": 3,              
+              "show_score": 4,
+              "game_over": 5}
 
 state = game_state['title_screen']
 
-snake = Snake()
-food = Food()
+recorded_inputs = [
+    (780, {'A': False, 'X': False, 'Y': True, 'B': False}),
+    (860, {'A': False, 'X': True, 'Y': False, 'B': False}),
+    (882, {'A': True, 'X': False, 'Y': False, 'B': False}),
+    (891, {'A': True, 'X': False, 'Y': False, 'B': False}),
+    (927, {'A': False, 'X': False, 'Y': False, 'B': True}),
+    (936, {'A': False, 'X': False, 'Y': False, 'B': True}),
+    (954, {'A': False, 'X': False, 'Y': True, 'B': False}),
+    (963, {'A': False, 'X': False, 'Y': True, 'B': False}),
+    (999, {'A': False, 'X': True, 'Y': False, 'B': False}),
+    (1017, {'A': True, 'X': False, 'Y': False, 'B': False}),
+    (1080, {'A': False, 'X': True, 'Y': False, 'B': False}),
+    (1098, {'A': True, 'X': False, 'Y': False, 'B': False}),
+    (1188, {'A': False, 'X': False, 'Y': False, 'B': True}),
+    (1260, {'A': False, 'X': False, 'Y': True, 'B': False}),
+    (1323, {'A': False, 'X': True, 'Y': False, 'B': False}),
+    (1332, {'A': False, 'X': True, 'Y': False, 'B': False}),
+    (1368, {'A': True, 'X': False, 'Y': False, 'B': False}),
+    (1395, {'A': False, 'X': False, 'Y': False, 'B': True}),
+    (1422, {'A': False, 'X': False, 'Y': True, 'B': False}),
+    (1503, {'A': False, 'X': True, 'Y': False, 'B': False}),
+    (1512, {'A': False, 'X': True, 'Y': False, 'B': False}),
+    (1539, {'A': True, 'X': False, 'Y': False, 'B': False}),
+    (1584, {'A': False, 'X': False, 'Y': False, 'B': True}),
+    (1638, {'A': False, 'X': False, 'Y': True, 'B': False}),
+    (1692, {'A': False, 'X': True, 'Y': False, 'B': False}),
+    (1728, {'A': True, 'X': False, 'Y': False, 'B': False}),
+    (1764, {'A': False, 'X': False, 'Y': False, 'B': True}),
+    (1800, {'A': False, 'X': False, 'Y': True, 'B': False}),
+    (1809, {'A': False, 'X': False, 'Y': True, 'B': False}),
+    (1836, {'A': False, 'X': True, 'Y': False, 'B': False}),
+    (1872, {'A': True, 'X': False, 'Y': False, 'B': False}),
+    (1926, {'A': False, 'X': False, 'Y': False, 'B': True}),
+    (1962, {'A': False, 'X': False, 'Y': True, 'B': False}),
+    (1998, {'A': False, 'X': True, 'Y': False, 'B': False}),
+    (2025, {'A': True, 'X': False, 'Y': False, 'B': False}),
+    (2034, {'A': True, 'X': False, 'Y': False, 'B': False}),
+    (2070, {'A': False, 'X': False, 'Y': False, 'B': True}),
+    (2079, {'A': False, 'X': False, 'Y': False, 'B': True}),
+    (2106, {'A': False, 'X': False, 'Y': True, 'B': False}),
+    (2133, {'A': False, 'X': True, 'Y': False, 'B': False}),
+    (2142, {'A': False, 'X': True, 'Y': False, 'B': False}),
+    (2169, {'A': True, 'X': False, 'Y': False, 'B': False}),
+    (2178, {'A': True, 'X': False, 'Y': False, 'B': False}),
+    (2224, {'A': False, 'X': False, 'Y': False, 'B': True}),
+    (2240, {'A': False, 'X': False, 'Y': True, 'B': False}),
+    (2248, {'A': False, 'X': False, 'Y': True, 'B': False}),
+    (2304, {'A': False, 'X': True, 'Y': False, 'B': False}),
+    (2328, {'A': True, 'X': False, 'Y': False, 'B': False}),
+    (2360, {'A': False, 'X': False, 'Y': False, 'B': True}),
+    (2368, {'A': False, 'X': False, 'Y': True, 'B': False}),
+    (2432, {'A': False, 'X': True, 'Y': False, 'B': False}),
+    (2456, {'A': True, 'X': False, 'Y': False, 'B': False}),
+    (2480, {'A': False, 'X': False, 'Y': False, 'B': True}),
+    (2496, {'A': False, 'X': False, 'Y': True, 'B': False}),
+    (2544, {'A': False, 'X': True, 'Y': False, 'B': False}),
+    (2552, {'A': False, 'X': True, 'Y': False, 'B': False}),
+    (2568, {'A': True, 'X': False, 'Y': False, 'B': False}),
+    (2592, {'A': False, 'X': False, 'Y': False, 'B': True}),
+    (2608, {'A': False, 'X': False, 'Y': True, 'B': False}),
+    (2632, {'A': False, 'X': True, 'Y': False, 'B': False}),
+    (2640, {'A': True, 'X': False, 'Y': False, 'B': False}),
+    (2648, {'A': True, 'X': False, 'Y': False, 'B': False})
+    ]
 
 def map_to_range(val, min_1, max_1, min_2, max_2):
     if val <= min_1:
@@ -377,9 +524,38 @@ score = 0
 
 base_refresh = 0.01
 
+countdown = 20
+cooldown = countdown
+
+
+min_skip, max_skip = 10, 2
+
+#recorded_inputs = []
+    
+demo_mode = True
+
+def demo_movements(pressed):
+    global recorded_inputs
+    print(recorded_inputs[0][0], frameCount)
+    if recorded_inputs[0][0] <= frameCount:
+        print("tryin")                                                                                                                                                                                                                                                                                    
+        this_move = recorded_inputs.pop(0)
+        return this_move[1]
+    else:
+        return pressed
+        
+
+def init_level():
+    global snake, food, score
+    load_level(level_number)
+    snake = Snake()
+    food = Food()
+    #frameCount = 0
+    score = 0
+
 while True:    
     
-    frame_skip = int(map_to_range(snake.length, 1, 50, 10, 2))
+    frame_skip = int(map_to_range(score, 0, 50, min_skip, max_skip))
     
     if frameCount % frame_skip == 0:
         pressed = update_inputs(display)
@@ -388,10 +564,39 @@ while True:
         #debug_pattern()
         
         if state == game_state['title_screen']:
+            cooldown -= 1
+            
+            
+            lives_left = 3
+            
             draw_background(display)
             show_title_screen(display)
             
-            if any_button(pressed):
+            if cooldown < 0:
+                cooldown = countdown
+                state = game_state['level_name']
+                init_level()
+                
+                
+        
+        elif state == game_state['level_name']:
+            cooldown -= 1
+            
+            draw_background(display)
+            show_level_name(display)
+            
+            if cooldown < 0:
+                cooldown = countdown
+                state = game_state['lives_left']
+                
+                
+        elif state == game_state['lives_left']:
+            cooldown -= 1
+            
+            draw_background(display)
+            show_lives_left(display)
+            
+            if cooldown < 0:
                 state = game_state['playing']
         
         
@@ -399,6 +604,9 @@ while True:
                 
             draw_background(display)
             draw_game_objects(display)
+            
+            if demo_mode:
+                pressed = demo_movements(pressed)
             
             snake.update_direction(pressed)
             new_head = snake.move()
@@ -408,24 +616,55 @@ while True:
                 snake.push(new_head)
                 food.reset_position()
                 
-            elif (snake.moving() and snake.contains(new_head.pos)):
-                state = game_state['game_over']
+            elif (snake.moving() and (snake.contains(new_head.pos) or check_walls(new_head.pos))):
+                #state = game_state['game_over']
+                cooldown = 10
+                                    
+                state = game_state['show_score']
+                
+                if demo_mode == False:
+                    for inp in recorded_inputs:
+                        print(inp, end=",\n")
+                    
+                    recorded_inputs = []
             
             else:
                 snake.push(new_head)
                 snake.pop()
+                
+        elif state == game_state['show_score']:
+            cooldown -= 1
+            
+            draw_background(display)
+            draw_game_objects(display)
+            show_score(display)
+            
+            if cooldown < 0:
+                cooldown = countdown
+                
+                if score > 3:
+                    level_number += 1
+                    level_number %= total_levels
+                else:                    
+                    lives_left -= 1
+                    
+                if lives_left == 0:
+                    state = game_state['game_over']
+                else:
+                    init_level()
+                    state = game_state['level_name']
+                        
             
         
         elif state == game_state['game_over']:
+            cooldown -= 1
             
             draw_background(display)
             draw_game_objects(display)
             show_game_over(display)
             
-            if any_button(pressed):
-                score = 0
-                snake = Snake()
-                food = Food()
+            if cooldown < 0:     
+                cooldown = countdown           
                 state = game_state['title_screen']
 
         display.update()
