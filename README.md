@@ -1,2 +1,2 @@
 # pico-snake
-Snake Game for Raspberry Pico
+Snake Game in MicroPython for Raspberry Pi Pico

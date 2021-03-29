@@ -4,7 +4,7 @@ from random import randint
 import picodisplay as display
 
 # initialize some global variables for settings
-backlight_intensity = 0.8
+backlight_intensity = 0.6
 
 tile_size = 12
 grid_w, grid_h = 20, 11 # 20*11 tiles
