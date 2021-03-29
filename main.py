@@ -1,21 +1,8 @@
-# import modules for timing, display, enums, and random integers
+# import modules for timing, display, and random integers
 import utime
 from random import randint
 import picodisplay as display
 
-# initialize some global variables for settings
-backlight_intensity = 0.6
-
-tile_size = 12
-grid_w, grid_h = 20, 11 # 20*11 tiles
-
-score = 0
-
-snake_color = (0, 200, 0)
-food_color  = (200, 0, 0)
-wall_color  = (255, 0, 255)
-title_color = (255, 255, 0)
-score_color = (255, 255, 255)
 
 # picodisplay boilerplate code
 width = display.get_width()
@@ -24,23 +11,43 @@ height = display.get_height()
 display_buffer = bytearray(width * height * 2)
 display.init(display_buffer)
 
+backlight_intensity = 0.6
 display.set_backlight(backlight_intensity)
+
+
+# initialize some global variables for game
+tile_size = 12 # size in pixels of square tiles
+grid_w, grid_h = 20, 11 # 20*11 tiles
+
+score = 0
+frameCount = 0
+
+# initialize some color data
+snake_color = (0, 200, 0)
+food_color  = (200, 0, 0)
+wall_color  = (255, 0, 255)
+title_color = (255, 255, 0)
+score_color = (255, 255, 255)
+
 
 
 '''Classes: Food, SnakeNode, Snake'''
 class Food:
-    def __init__(self, snake):
-        self.reset_position(snake)
+    def __init__(self):
+        self.reset_position()
         
         
-    def reset_position(self, s):
-        self.pos = randint(1, grid_w-2), randint(1, grid_h-2)
+    # sets new position for Food (bug: allows new position in snake...?)
+    def reset_position(self):
+        new_pos = randint(1, grid_w-2), randint(1, grid_h-2)
         
         global snake
         
-        while snake.contains(self.pos):
-            self.pos = randint(1, grid_w-2), randint(1, grid_h-2)
-            print("moving food again")
+        while snake.contains(new_pos):
+            new_pos = randint(1, grid_w-2), randint(1, grid_h-2)
+            #print("placed food inside snake, redoing...")
+            
+        self.pos = new_pos
 
 
     def show(self, display):
@@ -49,6 +56,7 @@ class Food:
         food_red, food_green, food_blue = food_color
         display.set_pen(food_red, food_green, food_blue)
     
+        # calculate center of tile on canvas
         tile_x = (tile_size * food_x) + tile_size//2
         tile_y = (tile_size * food_y) + tile_size//2
         
@@ -58,62 +66,77 @@ class Food:
 
 
 
-class SnakeNode:
-    def __init__(self, position=None, direction=None, next=None):
-        self.pos = position
-        self.dir = direction
-        self.next = next
-
 
 
 class Snake:
-    def __init__(self):
+    def __init__(self):        
         center_of_grid = grid_w//2, grid_h//2
-        self.head = SnakeNode(center_of_grid, None, None)
         self.direction = (0, 0)
+        self.head = SnakeNode(center_of_grid, self.direction)
+        self.length = 1
         
         
     def push(self, new_head):
-        new_head.next = self.head
-        self.head = new_head
+        new_head.next, self.head = self.head, new_head
+        self.length += 1
         
         
     def pop(self):
         current_node = self.head        
         previous_node = None
         
+        num_times = 0
+        
+        # loop through entire list of SnakeNodes
         while current_node.next != None:
+            num_times += 1
             previous_node = current_node
             current_node = current_node.next
+            
+        # loop ends: final node in current_node, penultimate node in previous_node
+            
+        #print(frameCount, self.length, num_times)
         
+        # if there is a previous_node (i.e. this is not the head node)
         if previous_node != None:
-            previous_node.next = None
+            previous_node.next = None # clear pointer to final node
+            self.length -= 1
         
     
     def contains(self, position):
+        
+        num_times = 0
+        
         current_node = self.head
         
         while current_node != None:
+            num_times += 1
             if current_node.pos == position:
+                #print(frameCount, self.length, num_times)
                 return True
             
             current_node = current_node.next
             
+        #print(frameCount, self.length, num_times)
         return False
     
         
     def move(self):
+        # unpack direction and position of head node
         x_dir, y_dir = self.direction        
         head_x, head_y = self.head.pos
         
+        # update position according to direction
         head_x += x_dir
         head_y += y_dir
         
+        # keep position within grid boundaries
         head_x %= grid_w
         head_y %= grid_h
         
+        # create and return new head node
         new_head_position = head_x, head_y        
-        new_node = SnakeNode(new_head_position, self.direction, None)
+        new_node = SnakeNode(new_head_position, self.direction)
         
         return new_node
 
@@ -124,9 +147,11 @@ class Snake:
         
         current_node = self.head
         
-        while current_node != None:            
+        num_times = 0
+        
+        while current_node != None:    
+            num_times += 1        
             if current_node != self.head:
-                display.set_pen(0, 255, 0)
                 
                 x1, y1 = current_node.pos
                 x2, y2 = previous_node.pos
@@ -148,7 +173,8 @@ class Snake:
                 if not invisible:
                     line(x1, y1, x2, y2)
                 
-            else:        
+            else:
+                # draw circle for snake head
                 grid_x, grid_y = current_node.pos
             
                 canvas_x = (tile_size * grid_x)
@@ -158,11 +184,12 @@ class Snake:
                 center_y = canvas_y+(tile_size//2)
                 radius = (tile_size-4)//2
                 
-                display.set_pen(0, 255, 0)
                 display.circle(center_x, center_y, radius)
             
             previous_node = current_node
             current_node = current_node.next
+        
+        #print(frameCount, self.length, num_times)
         
         
     def moving(self):
@@ -217,7 +244,14 @@ class Snake:
                 y_dir = -1
                 
         self.direction = x_dir, y_dir
+
         
+class SnakeNode:
+    def __init__(self, position=None, direction=None, next=None, prev=None):
+        self.pos = position
+        self.dir = direction
+        self.next = next
+
         
 # Functions: line, debug_pattern
 def line(x1, y1, x2, y2):
@@ -298,13 +332,13 @@ def show_game_over(display):
 def draw_background(display):
     wall_red, wall_blue, wall_green = wall_color
     display.set_pen(wall_red, wall_blue, wall_green)
-    display.clear()    
+    #display.clear()    
     
     display.set_pen(0, 0, 0)
     display.rectangle(2, 2, 236, 128) # arena
     
     
-def draw_game_objects(display):
+def draw_game_objects(display):        
     food.show(display)    
     snake.show(display)        
 
@@ -315,63 +349,86 @@ game_state = {"title_screen": 0,
 
 state = game_state['title_screen']
 
-
 snake = Snake()
-food = Food(snake)
+food = Food()
 
+def map_to_range(val, min_1, max_1, min_2, max_2):
+    if val <= min_1:
+        return min_2
+    elif val >= max_1:
+        return max_2
+    else:
+        diff_1 = max_1 - min_1
+        ratio_1 = (val-min_1)/diff_1
+        
+        #min_2, max_2 = min(min_2, max_2), max(min_2, max_2)
+        
+        diff_2 = max_2 - min_2
+        ratio_2 = (ratio_1*diff_2)
+        
+        
+        ratio_2 += min_2
+        
+        return ratio_2
+
+print(map_to_range(5, 0, 10, 50, 100))
+print(map_to_range(3, 1, 10, 100, 2))
 score = 0
 
+base_refresh = 0.01
+
 while True:    
-    pressed = update_inputs(display)
     
-    draw_background(display)
+    frame_skip = int(map_to_range(snake.length, 1, 50, 10, 2))
     
-    #debug_pattern()
-    
-    if state == game_state['title_screen']:
-        show_title_screen(display)
+    if frameCount % frame_skip == 0:
+        pressed = update_inputs(display)
+        #draw_background(display)
         
-        if any_button(pressed):
-            state = game_state['playing']
-    
-    
-    elif state == game_state['playing']:
-        draw_game_objects(display)
+        #debug_pattern()
         
-        snake.update_direction(pressed)
-        new_head = snake.move()
+        if state == game_state['title_screen']:
+            draw_background(display)
+            show_title_screen(display)
+            
+            if any_button(pressed):
+                state = game_state['playing']
+        
+        
+        elif state == game_state['playing']:        
+                
+            draw_background(display)
+            draw_game_objects(display)
+            
+            snake.update_direction(pressed)
+            new_head = snake.move()
 
-        #if snake.check_food(new_head, food): 
-            #snake.push(new_head)
-        if new_head.pos == food.pos:
-            score += 1
+            if new_head.pos == food.pos:
+                score += 1
+                snake.push(new_head)
+                food.reset_position()
+                
+            elif (snake.moving() and snake.contains(new_head.pos)):
+                state = game_state['game_over']
             
-            food.reset_position(0)
+            else:
+                snake.push(new_head)
+                snake.pop()
             
-            while snake.contains(food.pos):
-                food.reset_position(0)
-                print("moving food again!!!")
-            
-            snake.push(new_head)
-            
-#         elif snake.check_walls(new_head) or (snake.moving() and snake.contains(new_head.pos)):
-        elif (snake.moving() and snake.contains(new_head.pos)):
-            state = game_state['game_over']
-            
-        else:
-            snake.push(new_head)
-            snake.pop()
-    
-    
-    elif state == game_state['game_over']:
-        draw_game_objects(display)
-        show_game_over(display)
         
-        if any_button(pressed):
-            score = 0
-            snake = Snake()
-            food = Food(snake)
-            state = game_state['title_screen']
+        elif state == game_state['game_over']:
+            
+            draw_background(display)
+            draw_game_objects(display)
+            show_game_over(display)
+            
+            if any_button(pressed):
+                score = 0
+                snake = Snake()
+                food = Food()
+                state = game_state['title_screen']
 
-    display.update()
-    utime.sleep(0.1)
+        display.update()
+        
+    frameCount += 1
+    utime.sleep(base_refresh)
