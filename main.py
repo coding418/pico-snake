@@ -19,8 +19,6 @@ display.set_backlight(backlight_intensity)
 tile_size = 12 # size in pixels of square tiles
 grid_w, grid_h = 20, 11 # 20*11 tiles
 
-score = 0
-frameCount = 0
 
 # initialize some color data
 snake_color = (0, 200, 0)
@@ -213,7 +211,7 @@ class Snake:
                 y2 += tile_size//2
                 
                 if not invisible:
-                    line(x1, y1, x2, y2)
+                    self.line(x1, y1, x2, y2)
                 
             else:
                 # draw circle for snake head
@@ -264,7 +262,27 @@ class Snake:
                 
         self.direction = x_dir, y_dir
 
-
+    def line(self, x1, y1, x2, y2):
+        start_x = min(x1, x2)
+        start_y = min(y1, y2)
+        
+        line_thickness = 4    
+        offset = line_thickness//2
+            
+        start_x -= offset
+        start_y -= offset
+        
+        # for horizontal lines
+        if x1 == x2:
+            line_width = offset * 2
+            line_height = offset + abs(y1-y2) + offset
+          
+        # for vertical lines
+        elif y1 == y2:
+            line_width = offset + abs(x1-x2) + offset
+            line_height = offset * 2        
+        
+        display.rectangle(start_x, start_y, line_width, line_height)
         
 class SnakeNode:
     def __init__(self, position=None, direction=None, next=None, prev=None):
@@ -274,28 +292,7 @@ class SnakeNode:
 
         
 # Functions: line, debug_pattern
-def line(x1, y1, x2, y2):
-    start_x = min(x1, x2)
-    start_y = min(y1, y2)
-    
-    line_thickness = 4    
-    offset = line_thickness//2
-        
-    start_x -= offset
-    start_y -= offset
-    
-    # for horizontal lines
-    if x1 == x2:
-        line_width = offset * 2
-        line_height = offset + abs(y1-y2) + offset
-      
-    # for vertical lines
-    elif y1 == y2:
-        line_width = offset + abs(x1-x2) + offset
-        line_height = offset * 2
-    
-    
-    display.rectangle(start_x, start_y, line_width, line_height)
+
 
 
 def debug_pattern():
@@ -334,40 +331,33 @@ def any_button(pressed):
     return pressed['A'] or pressed['B'] or pressed['X'] or pressed['Y']
 
 
-def show_title_screen(display):
+def show_game_text(display):
     title_red, title_green, title_blue = title_color
     display.set_pen(title_red, title_green, title_blue)
+
+    if state == game_state['title_screen']:
+        display.text("PiCo", int(width/6), int(height/16), 10, 8)
+        display.text("Snake", int(width/16), int(height/2), 10, 8)
+        
+    elif state == game_state['level_name']:    
+        display.text("Level", int(width/12), int(height/16), 10, 8)
+        display.text(str(level_number), int(7*width/16), int(height/2), 10, 8)
+        
+    elif state == game_state['lives_left']:    
+        display.text("Lives", int(width/12), int(height/16), 10, 8)
+        display.text(str(lives_left), int(width/16), int(height/2), 10, 8)
+        
+    elif state == game_state['show_score']:
+        draw_game_objects(display)
+        display.set_pen(title_red, title_green, title_blue)
+        display.text("SCORE", int(width/16), int(height/16), 10, 8)
+        display.text(str(score), int(2*width/5), int(height/2), 10, 8)
     
-    display.text("PiCo", int(width/6), int(height/16), 10, 8)
-    display.text("Snake", int(width/16), int(height/2), 10, 8)
-    
-def show_level_name(display):
-    title_red, title_green, title_blue = title_color
-    display.set_pen(title_red, title_green, title_blue)
-    
-    display.text("Level", int(width/12), int(height/16), 10, 8)
-    display.text(str(level_number), int(7*width/16), int(height/2), 10, 8)
-    
-def show_lives_left(display):
-    title_red, title_green, title_blue = title_color
-    display.set_pen(title_red, title_green, title_blue)
-    
-    display.text("Lives", int(width/12), int(height/16), 10, 8)
-    display.text(str(lives_left), int(width/16), int(height/2), 10, 8)
-    
-def show_score(display):    
-    score_red, score_green, score_blue = score_color
-    display.set_pen(score_red, score_green, score_blue)
-    
-    display.text("SCORE", int(width/16), int(height/16), 10, 8)
-    display.text(str(score), int(2*width/5), int(height/2), 10, 8)
-    
-def show_game_over(display):    
-    score_red, score_green, score_blue = score_color
-    display.set_pen(score_red, score_green, score_blue)
-    
-    display.text("Game", int(width/6), int(height/16), 10, 8)
-    display.text("Over", int(width/16), int(height/2), 10, 8)
+    elif state == game_state['game_over']:
+        draw_game_objects(display)
+        display.set_pen(title_red, title_green, title_blue)
+        display.text("Game", int(width/6), int(height/16), 10, 8)
+        display.text("Over", int(width/16), int(height/2), 10, 8)
 
 
 def draw_background(display):
@@ -395,6 +385,15 @@ def map_to_range(val, min_1, max_1, min_2, max_2):
         
         return ratio_2
     
+
+def init_level():
+    global snake, food, score, level
+    level = Level(level_number)
+    snake = Snake()
+    food = Food()
+    score = 0    
+
+frameCount = 0
 score = 0
 
 base_refresh = 0.01
@@ -416,13 +415,6 @@ game_state = {"title_screen": 0,
 
 state = game_state['title_screen']
 
-def init_level():
-    global snake, food, score, level
-    level = Level(level_number)
-    snake = Snake()
-    food = Food()
-    #frameCount = 0
-    score = 0
 
 while True:    
     
@@ -432,40 +424,7 @@ while True:
         pressed = update_inputs(display)
         draw_background(display)
         
-        if state == game_state['title_screen']:
-            cooldown -= 1      
-            
-            show_title_screen(display)
-            
-            if cooldown < 0:
-                cooldown = countdown     
-                lives_left = 3
-                level_number = 0
-                state = game_state['level_name']
-                init_level()
-                
-                
-        
-        elif state == game_state['level_name']:
-            cooldown -= 1
-            
-            show_level_name(display)
-            
-            if cooldown < 0:
-                cooldown = countdown
-                state = game_state['lives_left']
-                
-                
-        elif state == game_state['lives_left']:
-            cooldown -= 1
-            
-            show_lives_left(display)
-            
-            if cooldown < 0:
-                state = game_state['playing']
-        
-        
-        elif state == game_state['playing']:        
+        if state == game_state['playing']:        
                 
             draw_game_objects(display)            
             
@@ -485,38 +444,39 @@ while True:
                 snake.push(new_head)
                 snake.pop()
                 
-        elif state == game_state['show_score']:
-            cooldown -= 1
+        else:
+            cooldown -= 1    
+            show_game_text(display)
             
-            draw_game_objects(display)
-            show_score(display)
-            
-            if cooldown < 0:
+            if cooldown <0:
                 cooldown = countdown
                 
-                if score > 3:
-                    level_number += 1
-                    level_number %= total_levels
-                else:                    
-                    lives_left -= 1
-                    
-                if lives_left == 0:
-                    state = game_state['game_over']
-                else:
-                    init_level()
-                    state = game_state['level_name']
+                if state == game_state['title_screen']: 
+                    lives_left = 3
+                    level_number = 0
+                    state = game_state['level_name']                 
+                
+                elif state == game_state['level_name']: 
+                    init_level()  
+                    state = game_state['lives_left']                        
                         
-            
-        
-        elif state == game_state['game_over']:
-            cooldown -= 1
-            
-            draw_game_objects(display)
-            show_game_over(display)
-            
-            if cooldown < 0:     
-                cooldown = countdown           
-                state = game_state['title_screen']
+                elif state == game_state['lives_left']:   
+                    state = game_state['playing']            
+                        
+                elif state == game_state['show_score']:                             
+                    if score > 3:
+                        level_number += 1
+                        level_number %= total_levels
+                    else:                    
+                        lives_left -= 1
+                        
+                    if lives_left == 0:
+                        state = game_state['game_over']
+                    else:                        
+                        state = game_state['level_name'] 
+                
+                elif state == game_state['game_over']:           
+                     state = game_state['title_screen']
 
         display.update()
         
