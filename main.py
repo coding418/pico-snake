@@ -1,8 +1,6 @@
-# import modules for timing, display, and random integers
 import utime
 from random import randint
 import picodisplay as display
-
 
 # picodisplay boilerplate code
 width = display.get_width()
@@ -14,13 +12,11 @@ display.init(display_buffer)
 backlight_intensity = 0.6
 display.set_backlight(backlight_intensity)
 
+# initialize global variables for game
+tile_size = 12            # size in pixels of square tiles
+grid_w, grid_h = 20, 11   # 20*11 tiles
 
-# initialize global variables for game (used by all classes)
-tile_size = 12 # size in pixels of square tiles
-grid_w, grid_h = 20, 11 # 20*11 tiles
-
-
-# initialize global color data
+# color data
 snake_color = (0, 200, 0)
 food_color  = (200, 0, 0)
 wall_color  = (200, 0, 200)
@@ -33,13 +29,16 @@ class Level:
         self.load_level(level_number)
         
         
+    # a Level consists of walls (co-ordinates of immovable blocks)
     def load_level(self, level_number):
         self.walls = []
         
+        # level data loaded from file level-*.txt
         filename = "level-" + str(level_number) + ".txt"
         f = open(filename, "r")
         lines = f.readlines()
 
+        # each '0' on a line represents a wall
         for y, line in enumerate(lines):
             for x, char in enumerate(line):
                 if 0 <= x < grid_w and 0 <= y < grid_h and char == '0':
@@ -49,6 +48,7 @@ class Level:
         f.close()
         
         
+    # check if position is in walls
     def check_walls(self, pos):
         for wall in self.walls:
             if pos == wall:
@@ -57,6 +57,7 @@ class Level:
         return False
         
         
+    # draw wall graphics
     def show(self, display):
         wall_red, wall_blue, wall_green = wall_color
         
@@ -77,12 +78,13 @@ class Food:
         self.reset_position(snake, level)
         
         
-    # sets new position for Food (bug: allows new position in snake...?)
+    # sets new position for Food
     def reset_position(self, snake, level):
-        new_pos = randint(1, grid_w-2), randint(1, grid_h-2)
+        new_pos = randint(0, grid_w-1), randint(0, grid_h-1)
         
+        # re-calculate if random position inside snake or walls
         while snake.contains(new_pos) or level.check_walls(new_pos):
-            new_pos = randint(1, grid_w-2), randint(1, grid_h-2)
+            new_pos = randint(0, grid_w-1), randint(0, grid_h-1)
             
         self.pos = new_pos
 
