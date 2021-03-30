@@ -15,12 +15,12 @@ backlight_intensity = 0.6
 display.set_backlight(backlight_intensity)
 
 
-# initialize some global variables for game
+# initialize global variables for game (used by all classes)
 tile_size = 12 # size in pixels of square tiles
 grid_w, grid_h = 20, 11 # 20*11 tiles
 
 
-# initialize some color data
+# initialize global color data
 snake_color = (0, 200, 0)
 food_color  = (200, 0, 0)
 wall_color  = (200, 0, 200)
@@ -32,24 +32,30 @@ class Level:
     def __init__(self, level_number):
         self.load_level(level_number)
         
+        
     def load_level(self, level_number):
+        self.walls = []
+        
         filename = "level-" + str(level_number) + ".txt"
         f = open(filename, "r")
-
         lines = f.readlines()
-
-        y = 0
-
-        self.walls = []
 
         for y, line in enumerate(lines):
             for x, char in enumerate(line):
                 if 0 <= x < grid_w and 0 <= y < grid_h and char == '0':
                     wall_pos = x, y
                     self.walls.append(wall_pos)
-
-            
+                    
         f.close()
+        
+        
+    def check_walls(self, pos):
+        for wall in self.walls:
+            if pos == wall:
+                return True
+        
+        return False
+        
         
     def show(self, display):
         wall_red, wall_blue, wall_green = wall_color
@@ -64,30 +70,19 @@ class Level:
             display.set_pen(wall_red//2, wall_blue//2, wall_green//2)
             display.rectangle(tile_x+2, tile_y+2, tile_size-4, tile_size-4)
             
-    def check_walls(self, pos):
-        for wall in self.walls:
-            if pos == wall:
-                return True
-        
-        return False
 
-'''Classes: Food, SnakeNode, Snake'''
+
 class Food:
     def __init__(self, snake, level):
-        self.snake = snake
-        self.level = level
-        self.reset_position()
+        self.reset_position(snake, level)
         
         
     # sets new position for Food (bug: allows new position in snake...?)
-    def reset_position(self):
+    def reset_position(self, snake, level):
         new_pos = randint(1, grid_w-2), randint(1, grid_h-2)
         
-        #global snake, level
-        
-        while self.snake.contains(new_pos) or self.level.check_walls(new_pos):
+        while snake.contains(new_pos) or level.check_walls(new_pos):
             new_pos = randint(1, grid_w-2), randint(1, grid_h-2)
-            #print("placed food inside snake, redoing...")
             
         self.pos = new_pos
 
@@ -105,8 +100,6 @@ class Food:
         radius = (tile_size-2)//2
                 
         display.circle(tile_x, tile_y, radius)
-
-
 
 
 
@@ -136,8 +129,6 @@ class Snake:
             current_node = current_node.next
             
         # loop ends: final node in current_node, penultimate node in previous_node
-            
-        #print(frameCount, self.length, num_times)
         
         # if there is a previous_node (i.e. this is not the head node)
         if previous_node != None:
@@ -145,8 +136,7 @@ class Snake:
             self.length -= 1
         
     
-    def contains(self, position):
-        
+    def contains(self, position):        
         num_times = 0
         
         current_node = self.head
@@ -154,12 +144,10 @@ class Snake:
         while current_node != None:
             num_times += 1
             if current_node.pos == position:
-                #print(frameCount, self.length, num_times)
                 return True
             
             current_node = current_node.next
             
-        #print(frameCount, self.length, num_times)
         return False
     
         
@@ -231,12 +219,9 @@ class Snake:
             previous_node = current_node
             current_node = current_node.next
         
-        #print(frameCount, self.length, num_times)
-        
         
     def moving(self):
         return self.direction != (0, 0)
-        
 
 
     def update_direction(self, pressed):
@@ -264,6 +249,7 @@ class Snake:
                 
         self.direction = x_dir, y_dir
 
+
     def line(self, x1, y1, x2, y2):
         start_x = min(x1, x2)
         start_y = min(y1, y2)
@@ -286,6 +272,8 @@ class Snake:
         
         display.rectangle(start_x, start_y, line_width, line_height)
         
+        
+        
 class SnakeNode:
     def __init__(self, position=None, direction=None, next=None, prev=None):
         self.pos = position
@@ -293,101 +281,8 @@ class SnakeNode:
         self.next = next
 
         
-# Functions: line, debug_pattern
 
-class Game:
-    def debug_pattern(self, display):
-        alternate_color = False
-        
-        for j in range(grid_h):        
-            for i in range(grid_w):            
-                if alternate_color:
-                    display.set_pen(0, 0, 255)
-                else:
-                    display.set_pen(255, 0, 255)
-                    
-                tile_x = i * tile_size
-                tile_y = j * tile_size
-                
-                display.rectangle(tile_x, tile_y, tile_size, tile_size)
-                
-                alternate_color = not alternate_color
-                
-            alternate_color = not alternate_color
-            
-
-    def update_inputs(self, display):        
-        self.pressed['A'] = display.is_pressed(display.BUTTON_A)
-        self.pressed['B'] = display.is_pressed(display.BUTTON_B)
-        self.pressed['X'] = display.is_pressed(display.BUTTON_X)
-        self.pressed['Y'] = display.is_pressed(display.BUTTON_Y)        
-
-
-    def any_button(self, pressed):
-        return self.pressed['A'] or self.pressed['B'] or self.pressed['X'] or self.pressed['Y']
-
-
-    def show_game_text(self, display):
-        title_red, title_green, title_blue = title_color
-        display.set_pen(title_red, title_green, title_blue)
-
-        if self.state == self.game_state['title_screen']:
-            display.text("PiCo", int(width/6), int(height/16), 10, 8)
-            display.text("Snake", int(width/16), int(height/2), 10, 8)
-            
-        elif self.state == self.game_state['level_name']:    
-            display.text("Level", int(width/12), int(height/16), 10, 8)
-            display.text(str(self.level_number), int(7*width/16), int(height/2), 10, 8)
-            
-        elif self.state == self.game_state['lives_left']:    
-            display.text("Lives", int(width/12), int(height/16), 10, 8)
-            display.text(str(self.lives_left), int(width/16), int(height/2), 10, 8)
-            
-        elif self.state == self.game_state['show_score']:
-            self.draw_game_objects(display)
-            display.set_pen(title_red, title_green, title_blue)
-            display.text("SCORE", int(width/16), int(height/16), 10, 8)
-            display.text(str(self.score), int(2*width/5), int(height/2), 10, 8)
-        
-        elif self.state == self.game_state['game_over']:
-            self.draw_game_objects(display)
-            display.set_pen(title_red, title_green, title_blue)
-            display.text("Game", int(width/6), int(height/16), 10, 8)
-            display.text("Over", int(width/16), int(height/2), 10, 8)
-
-
-    def draw_background(self, display):
-        display.set_pen(0, 0, 0)
-        display.clear()
-        
-        
-    def draw_game_objects(self, display):        
-        self.food.show(display)   
-        self.level.show(display) 
-        self.snake.show(display)
-
-
-    def map_to_range(self, val, min_1, max_1, min_2, max_2):
-        if val <= min_1:
-            return min_2
-        elif val >= max_1:
-            return max_2
-        else:
-            diff_1 = max_1 - min_1
-            ratio_1 = (val-min_1)/diff_1
-            
-            diff_2 = max_2 - min_2
-            ratio_2 = (ratio_1*diff_2) + min_2
-            
-            return ratio_2
-        
-
-    def init_level(self):
-        self.level = Level(self.level_number)
-        self.snake = Snake()
-        self.food = Food(self.snake, self.level)
-        self.score = 0    
-
+class Game:        
     def __init__(self):
         self.pressed = {}
         self.frameCount = 0
@@ -412,6 +307,16 @@ class Game:
 
         self.state = self.game_state['title_screen']
         
+        
+    # initialize current level
+    def init_level(self):
+        self.level = Level(self.level_number)
+        self.snake = Snake()
+        self.food = Food(self.snake, self.level)
+        self.score = 0    
+        
+        
+    # update game data
     def tick(self, display):
         self.frame_skip = int(self.map_to_range(self.score, 0, 50, self.min_skip, self.max_skip))
     
@@ -429,7 +334,7 @@ class Game:
                 if new_head.pos == self.food.pos:
                     self.score += 1
                     self.snake.push(new_head)
-                    self.food.reset_position()
+                    self.food.reset_position(self.snake, self.level)
                     
                 elif (self.snake.moving() and (self.snake.contains(new_head.pos) or self.level.check_walls(new_head.pos))):
                     self.cooldown = self.countdown                                 
@@ -477,7 +382,101 @@ class Game:
             
         self.frameCount += 1
         utime.sleep(self.base_refresh)
+        
+        
+    # user input button methods
+    def update_inputs(self, display):        
+        self.pressed['A'] = display.is_pressed(display.BUTTON_A)
+        self.pressed['B'] = display.is_pressed(display.BUTTON_B)
+        self.pressed['X'] = display.is_pressed(display.BUTTON_X)
+        self.pressed['Y'] = display.is_pressed(display.BUTTON_Y)        
 
+
+    def any_button(self, pressed):
+        return self.pressed['A'] or self.pressed['B'] or self.pressed['X'] or self.pressed['Y']
+
+
+    # graphics methods
+    def draw_background(self, display):
+        display.set_pen(0, 0, 0)
+        display.clear()
+        
+        
+    def draw_game_objects(self, display):        
+        self.food.show(display)   
+        self.level.show(display) 
+        self.snake.show(display)
+        
+        
+    def show_game_text(self, display):
+        title_red, title_green, title_blue = title_color
+        display.set_pen(title_red, title_green, title_blue)
+
+        if self.state == self.game_state['title_screen']:
+            display.text("PiCo", int(width/6), int(height/16), 10, 8)
+            display.text("Snake", int(width/16), int(height/2), 10, 8)
+            
+        elif self.state == self.game_state['level_name']:    
+            display.text("Level", int(width/12), int(height/16), 10, 8)
+            display.text(str(self.level_number), int(7*width/16), int(height/2), 10, 8)
+            
+        elif self.state == self.game_state['lives_left']:    
+            display.text("Lives", int(width/12), int(height/16), 10, 8)
+            display.text(str(self.lives_left), int(width/16), int(height/2), 10, 8)
+            
+        elif self.state == self.game_state['show_score']:
+            self.draw_game_objects(display)
+            display.set_pen(title_red, title_green, title_blue)
+            display.text("SCORE", int(width/16), int(height/16), 10, 8)
+            display.text(str(self.score), int(2*width/5), int(height/2), 10, 8)
+        
+        elif self.state == self.game_state['game_over']:
+            self.draw_game_objects(display)
+            display.set_pen(title_red, title_green, title_blue)
+            display.text("Game", int(width/6), int(height/16), 10, 8)
+            display.text("Over", int(width/16), int(height/2), 10, 8)
+
+
+    def debug_pattern(self, display):
+        alternate_color = False
+        
+        for j in range(grid_h):        
+            for i in range(grid_w):            
+                if alternate_color:
+                    display.set_pen(0, 0, 255)
+                else:
+                    display.set_pen(255, 0, 255)
+                    
+                tile_x = i * tile_size
+                tile_y = j * tile_size
+                
+                display.rectangle(tile_x, tile_y, tile_size, tile_size)
+                
+                alternate_color = not alternate_color
+                
+            alternate_color = not alternate_color
+
+
+    # simple range mapping method
+    def map_to_range(self, val, min_1, max_1, min_2, max_2):
+        if val <= min_1:
+            return min_2
+        elif val >= max_1:
+            return max_2
+        else:
+            diff_1 = max_1 - min_1
+            ratio_1 = (val-min_1)/diff_1
+            
+            diff_2 = max_2 - min_2
+            ratio_2 = (ratio_1*diff_2) + min_2
+            
+            return ratio_2
+        
+
+
+# initialize game
 game = Game()
+
+# run game loop
 while True:    
     game.tick(display)
