@@ -19,30 +19,6 @@ display.set_backlight(backlight_intensity)
 tile_size = 12 # size in pixels of square tiles
 grid_w, grid_h = 20, 11 # 20*11 tiles
 
-
-walls = []
-
-def load_level(level_number):
-    filename = "level-" + str(level_number) + ".txt"
-    f = open(filename, "r")
-
-    lines = f.readlines()
-
-    y = 0
-
-    global walls
-
-    walls = []
-
-    for y, line in enumerate(lines):
-        for x, char in enumerate(line):
-            if 0 <= x < grid_w and 0 <= y < grid_h and char == '0':
-                wall_pos = x, y
-                walls.append(wall_pos)
-
-        
-    f.close()
-
 score = 0
 frameCount = 0
 
@@ -53,7 +29,49 @@ wall_color  = (200, 0, 200)
 title_color = (255, 255, 0)
 score_color = (255, 255, 255)
 
+    
+class Level:
+    def __init__(self, level_number):
+        self.load_level(level_number)
+        
+    def load_level(self, level_number):
+        filename = "level-" + str(level_number) + ".txt"
+        f = open(filename, "r")
 
+        lines = f.readlines()
+
+        y = 0
+
+        self.walls = []
+
+        for y, line in enumerate(lines):
+            for x, char in enumerate(line):
+                if 0 <= x < grid_w and 0 <= y < grid_h and char == '0':
+                    wall_pos = x, y
+                    self.walls.append(wall_pos)
+
+            
+        f.close()
+        
+    def show(self, display):
+        wall_red, wall_blue, wall_green = wall_color
+        
+        for wall in self.walls:
+            grid_x, grid_y = wall
+            tile_x = grid_x * tile_size
+            tile_y = grid_y * tile_size
+            
+            display.set_pen(wall_red, wall_blue, wall_green)
+            display.rectangle(tile_x, tile_y, tile_size, tile_size)
+            display.set_pen(wall_red//2, wall_blue//2, wall_green//2)
+            display.rectangle(tile_x+2, tile_y+2, tile_size-4, tile_size-4)
+            
+    def check_walls(self, pos):
+        for wall in self.walls:
+            if pos == wall:
+                return True
+        
+        return False
 
 '''Classes: Food, SnakeNode, Snake'''
 class Food:
@@ -65,9 +83,9 @@ class Food:
     def reset_position(self):
         new_pos = randint(1, grid_w-2), randint(1, grid_h-2)
         
-        global snake
+        global snake, level
         
-        while snake.contains(new_pos) or check_walls(new_pos):
+        while snake.contains(new_pos) or level.check_walls(new_pos):
             new_pos = randint(1, grid_w-2), randint(1, grid_h-2)
             #print("placed food inside snake, redoing...")
             
@@ -219,29 +237,6 @@ class Snake:
     def moving(self):
         return self.direction != (0, 0)
         
-        
-    def check_walls(self, new_head):
-        head_x, head_y = new_head.pos
-        
-        min_x = 0
-        max_x = grid_w - 1
-        
-        min_y = 0
-        max_y = grid_h - 1
-        
-        return head_x < min_x or head_x > max_x or head_y < min_y or head_y > max_y
-    
-    
-    def check_food(self, new_head, food):
-        if new_head.pos == food.pos:
-            food.reset_position(self)
-            
-            global score
-            score += 1
-                      
-            return True
-        else:
-            return False
 
 
     def update_direction(self, pressed):
@@ -269,12 +264,7 @@ class Snake:
                 
         self.direction = x_dir, y_dir
 
-def check_walls(pos):
-    for wall in walls:
-        if pos == wall:
-            return True
-    
-    return False
+
         
 class SnakeNode:
     def __init__(self, position=None, direction=None, next=None, prev=None):
@@ -336,10 +326,6 @@ def update_inputs(display):
     pressed['X'] = display.is_pressed(display.BUTTON_X)
     pressed['Y'] = display.is_pressed(display.BUTTON_Y)
     
-    global recorded_inputs
-    
-    if any_button(pressed) and demo_mode == False:
-        recorded_inputs.append((frameCount, pressed))
     
     return pressed
 
@@ -385,119 +371,15 @@ def show_game_over(display):
 
 
 def draw_background(display):
-    wall_red, wall_blue, wall_green = wall_color
-    display.set_pen(wall_red, wall_blue, wall_green)
-        
-    
     display.set_pen(0, 0, 0)
     display.clear()
-    #display.rectangle(2, 2, 236, 128) # arena
     
     
 def draw_game_objects(display):        
     food.show(display)   
-    draw_walls(display) 
+    level.show(display) 
     snake.show(display)
 
-def draw_walls(display):
-    wall_red, wall_blue, wall_green = wall_color
-    
-    for wall in walls:
-        grid_x, grid_y = wall
-        tile_x = grid_x * tile_size
-        tile_y = grid_y * tile_size
-        
-        display.set_pen(wall_red, wall_blue, wall_green)
-        display.rectangle(tile_x, tile_y, tile_size, tile_size)
-        display.set_pen(wall_red//2, wall_blue//2, wall_green//2)
-        display.rectangle(tile_x+2, tile_y+2, tile_size-4, tile_size-4)
-        
-#         canvas_x = (tile_size * grid_x)
-#         canvas_y = (tile_size * grid_y)
-#         
-#         center_x = canvas_x+(tile_size//2)
-#         center_y = canvas_y+(tile_size//2)
-#         radius = (tile_size-4)//2
-#         
-#         display.circle(center_x, center_y, radius)
-        
-level_number = 0
-total_levels = 4
-
-    
-game_state = {"title_screen": 0,
-              "level_name": 1,          
-              "lives_left": 2,
-              "playing": 3,              
-              "show_score": 4,
-              "game_over": 5}
-
-state = game_state['title_screen']
-
-recorded_inputs = [
-    (780, {'A': False, 'X': False, 'Y': True, 'B': False}),
-    (860, {'A': False, 'X': True, 'Y': False, 'B': False}),
-    (882, {'A': True, 'X': False, 'Y': False, 'B': False}),
-    (891, {'A': True, 'X': False, 'Y': False, 'B': False}),
-    (927, {'A': False, 'X': False, 'Y': False, 'B': True}),
-    (936, {'A': False, 'X': False, 'Y': False, 'B': True}),
-    (954, {'A': False, 'X': False, 'Y': True, 'B': False}),
-    (963, {'A': False, 'X': False, 'Y': True, 'B': False}),
-    (999, {'A': False, 'X': True, 'Y': False, 'B': False}),
-    (1017, {'A': True, 'X': False, 'Y': False, 'B': False}),
-    (1080, {'A': False, 'X': True, 'Y': False, 'B': False}),
-    (1098, {'A': True, 'X': False, 'Y': False, 'B': False}),
-    (1188, {'A': False, 'X': False, 'Y': False, 'B': True}),
-    (1260, {'A': False, 'X': False, 'Y': True, 'B': False}),
-    (1323, {'A': False, 'X': True, 'Y': False, 'B': False}),
-    (1332, {'A': False, 'X': True, 'Y': False, 'B': False}),
-    (1368, {'A': True, 'X': False, 'Y': False, 'B': False}),
-    (1395, {'A': False, 'X': False, 'Y': False, 'B': True}),
-    (1422, {'A': False, 'X': False, 'Y': True, 'B': False}),
-    (1503, {'A': False, 'X': True, 'Y': False, 'B': False}),
-    (1512, {'A': False, 'X': True, 'Y': False, 'B': False}),
-    (1539, {'A': True, 'X': False, 'Y': False, 'B': False}),
-    (1584, {'A': False, 'X': False, 'Y': False, 'B': True}),
-    (1638, {'A': False, 'X': False, 'Y': True, 'B': False}),
-    (1692, {'A': False, 'X': True, 'Y': False, 'B': False}),
-    (1728, {'A': True, 'X': False, 'Y': False, 'B': False}),
-    (1764, {'A': False, 'X': False, 'Y': False, 'B': True}),
-    (1800, {'A': False, 'X': False, 'Y': True, 'B': False}),
-    (1809, {'A': False, 'X': False, 'Y': True, 'B': False}),
-    (1836, {'A': False, 'X': True, 'Y': False, 'B': False}),
-    (1872, {'A': True, 'X': False, 'Y': False, 'B': False}),
-    (1926, {'A': False, 'X': False, 'Y': False, 'B': True}),
-    (1962, {'A': False, 'X': False, 'Y': True, 'B': False}),
-    (1998, {'A': False, 'X': True, 'Y': False, 'B': False}),
-    (2025, {'A': True, 'X': False, 'Y': False, 'B': False}),
-    (2034, {'A': True, 'X': False, 'Y': False, 'B': False}),
-    (2070, {'A': False, 'X': False, 'Y': False, 'B': True}),
-    (2079, {'A': False, 'X': False, 'Y': False, 'B': True}),
-    (2106, {'A': False, 'X': False, 'Y': True, 'B': False}),
-    (2133, {'A': False, 'X': True, 'Y': False, 'B': False}),
-    (2142, {'A': False, 'X': True, 'Y': False, 'B': False}),
-    (2169, {'A': True, 'X': False, 'Y': False, 'B': False}),
-    (2178, {'A': True, 'X': False, 'Y': False, 'B': False}),
-    (2224, {'A': False, 'X': False, 'Y': False, 'B': True}),
-    (2240, {'A': False, 'X': False, 'Y': True, 'B': False}),
-    (2248, {'A': False, 'X': False, 'Y': True, 'B': False}),
-    (2304, {'A': False, 'X': True, 'Y': False, 'B': False}),
-    (2328, {'A': True, 'X': False, 'Y': False, 'B': False}),
-    (2360, {'A': False, 'X': False, 'Y': False, 'B': True}),
-    (2368, {'A': False, 'X': False, 'Y': True, 'B': False}),
-    (2432, {'A': False, 'X': True, 'Y': False, 'B': False}),
-    (2456, {'A': True, 'X': False, 'Y': False, 'B': False}),
-    (2480, {'A': False, 'X': False, 'Y': False, 'B': True}),
-    (2496, {'A': False, 'X': False, 'Y': True, 'B': False}),
-    (2544, {'A': False, 'X': True, 'Y': False, 'B': False}),
-    (2552, {'A': False, 'X': True, 'Y': False, 'B': False}),
-    (2568, {'A': True, 'X': False, 'Y': False, 'B': False}),
-    (2592, {'A': False, 'X': False, 'Y': False, 'B': True}),
-    (2608, {'A': False, 'X': False, 'Y': True, 'B': False}),
-    (2632, {'A': False, 'X': True, 'Y': False, 'B': False}),
-    (2640, {'A': True, 'X': False, 'Y': False, 'B': False}),
-    (2648, {'A': True, 'X': False, 'Y': False, 'B': False})
-    ]
 
 def map_to_range(val, min_1, max_1, min_2, max_2):
     if val <= min_1:
@@ -508,18 +390,11 @@ def map_to_range(val, min_1, max_1, min_2, max_2):
         diff_1 = max_1 - min_1
         ratio_1 = (val-min_1)/diff_1
         
-        #min_2, max_2 = min(min_2, max_2), max(min_2, max_2)
-        
         diff_2 = max_2 - min_2
-        ratio_2 = (ratio_1*diff_2)
-        
-        
-        ratio_2 += min_2
+        ratio_2 = (ratio_1*diff_2) + min_2
         
         return ratio_2
-
-print(map_to_range(5, 0, 10, 50, 100))
-print(map_to_range(3, 1, 10, 100, 2))
+    
 score = 0
 
 base_refresh = 0.01
@@ -527,27 +402,23 @@ base_refresh = 0.01
 countdown = 20
 cooldown = countdown
 
-
 min_skip, max_skip = 10, 2
 
-#recorded_inputs = []
-    
-demo_mode = True
+level_number = 0
+total_levels = 4
 
-def demo_movements(pressed):
-    global recorded_inputs
-    print(recorded_inputs[0][0], frameCount)
-    if recorded_inputs[0][0] <= frameCount:
-        print("tryin")                                                                                                                                                                                                                                                                                    
-        this_move = recorded_inputs.pop(0)
-        return this_move[1]
-    else:
-        return pressed
-        
+game_state = {"title_screen": 0,
+              "level_name": 1,          
+              "lives_left": 2,
+              "playing": 3,              
+              "show_score": 4,
+              "game_over": 5}
+
+state = game_state['title_screen']
 
 def init_level():
-    global snake, food, score
-    load_level(level_number)
+    global snake, food, score, level
+    level = Level(level_number)
     snake = Snake()
     food = Food()
     #frameCount = 0
@@ -559,21 +430,17 @@ while True:
     
     if frameCount % frame_skip == 0:
         pressed = update_inputs(display)
-        #draw_background(display)
-        
-        #debug_pattern()
+        draw_background(display)
         
         if state == game_state['title_screen']:
-            cooldown -= 1
+            cooldown -= 1      
             
-            
-            lives_left = 3
-            
-            draw_background(display)
             show_title_screen(display)
             
             if cooldown < 0:
-                cooldown = countdown
+                cooldown = countdown     
+                lives_left = 3
+                level_number = 0
                 state = game_state['level_name']
                 init_level()
                 
@@ -582,7 +449,6 @@ while True:
         elif state == game_state['level_name']:
             cooldown -= 1
             
-            draw_background(display)
             show_level_name(display)
             
             if cooldown < 0:
@@ -593,7 +459,6 @@ while True:
         elif state == game_state['lives_left']:
             cooldown -= 1
             
-            draw_background(display)
             show_lives_left(display)
             
             if cooldown < 0:
@@ -602,11 +467,7 @@ while True:
         
         elif state == game_state['playing']:        
                 
-            draw_background(display)
-            draw_game_objects(display)
-            
-            if demo_mode:
-                pressed = demo_movements(pressed)
+            draw_game_objects(display)            
             
             snake.update_direction(pressed)
             new_head = snake.move()
@@ -616,17 +477,9 @@ while True:
                 snake.push(new_head)
                 food.reset_position()
                 
-            elif (snake.moving() and (snake.contains(new_head.pos) or check_walls(new_head.pos))):
-                #state = game_state['game_over']
-                cooldown = 10
-                                    
+            elif (snake.moving() and (snake.contains(new_head.pos) or level.check_walls(new_head.pos))):
+                cooldown = 10                                    
                 state = game_state['show_score']
-                
-                if demo_mode == False:
-                    for inp in recorded_inputs:
-                        print(inp, end=",\n")
-                    
-                    recorded_inputs = []
             
             else:
                 snake.push(new_head)
@@ -635,7 +488,6 @@ while True:
         elif state == game_state['show_score']:
             cooldown -= 1
             
-            draw_background(display)
             draw_game_objects(display)
             show_score(display)
             
@@ -659,7 +511,6 @@ while True:
         elif state == game_state['game_over']:
             cooldown -= 1
             
-            draw_background(display)
             draw_game_objects(display)
             show_game_over(display)
             
