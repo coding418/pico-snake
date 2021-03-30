@@ -73,7 +73,9 @@ class Level:
 
 '''Classes: Food, SnakeNode, Snake'''
 class Food:
-    def __init__(self):
+    def __init__(self, snake, level):
+        self.snake = snake
+        self.level = level
         self.reset_position()
         
         
@@ -81,9 +83,9 @@ class Food:
     def reset_position(self):
         new_pos = randint(1, grid_w-2), randint(1, grid_h-2)
         
-        global snake, level
+        #global snake, level
         
-        while snake.contains(new_pos) or level.check_walls(new_pos):
+        while self.snake.contains(new_pos) or self.level.check_walls(new_pos):
             new_pos = randint(1, grid_w-2), randint(1, grid_h-2)
             #print("placed food inside snake, redoing...")
             
@@ -293,192 +295,189 @@ class SnakeNode:
         
 # Functions: line, debug_pattern
 
-
-
-def debug_pattern():
-    alternate_color = False
-    
-    for j in range(grid_h):        
-        for i in range(grid_w):            
-            if alternate_color:
-                display.set_pen(0, 0, 255)
-            else:
-                display.set_pen(255, 0, 255)
+class Game:
+    def debug_pattern(self, display):
+        alternate_color = False
+        
+        for j in range(grid_h):        
+            for i in range(grid_w):            
+                if alternate_color:
+                    display.set_pen(0, 0, 255)
+                else:
+                    display.set_pen(255, 0, 255)
+                    
+                tile_x = i * tile_size
+                tile_y = j * tile_size
                 
-            tile_x = i * tile_size
-            tile_y = j * tile_size
-            
-            display.rectangle(tile_x, tile_y, tile_size, tile_size)
-            
+                display.rectangle(tile_x, tile_y, tile_size, tile_size)
+                
+                alternate_color = not alternate_color
+                
             alternate_color = not alternate_color
             
-        alternate_color = not alternate_color
-        
 
-def update_inputs(display):
-    pressed = {}
-    
-    pressed['A'] = display.is_pressed(display.BUTTON_A)
-    pressed['B'] = display.is_pressed(display.BUTTON_B)
-    pressed['X'] = display.is_pressed(display.BUTTON_X)
-    pressed['Y'] = display.is_pressed(display.BUTTON_Y)
-    
-    
-    return pressed
+    def update_inputs(self, display):        
+        self.pressed['A'] = display.is_pressed(display.BUTTON_A)
+        self.pressed['B'] = display.is_pressed(display.BUTTON_B)
+        self.pressed['X'] = display.is_pressed(display.BUTTON_X)
+        self.pressed['Y'] = display.is_pressed(display.BUTTON_Y)        
 
 
-def any_button(pressed):
-    return pressed['A'] or pressed['B'] or pressed['X'] or pressed['Y']
+    def any_button(self, pressed):
+        return self.pressed['A'] or self.pressed['B'] or self.pressed['X'] or self.pressed['Y']
 
 
-def show_game_text(display):
-    title_red, title_green, title_blue = title_color
-    display.set_pen(title_red, title_green, title_blue)
-
-    if state == game_state['title_screen']:
-        display.text("PiCo", int(width/6), int(height/16), 10, 8)
-        display.text("Snake", int(width/16), int(height/2), 10, 8)
-        
-    elif state == game_state['level_name']:    
-        display.text("Level", int(width/12), int(height/16), 10, 8)
-        display.text(str(level_number), int(7*width/16), int(height/2), 10, 8)
-        
-    elif state == game_state['lives_left']:    
-        display.text("Lives", int(width/12), int(height/16), 10, 8)
-        display.text(str(lives_left), int(width/16), int(height/2), 10, 8)
-        
-    elif state == game_state['show_score']:
-        draw_game_objects(display)
+    def show_game_text(self, display):
+        title_red, title_green, title_blue = title_color
         display.set_pen(title_red, title_green, title_blue)
-        display.text("SCORE", int(width/16), int(height/16), 10, 8)
-        display.text(str(score), int(2*width/5), int(height/2), 10, 8)
-    
-    elif state == game_state['game_over']:
-        draw_game_objects(display)
-        display.set_pen(title_red, title_green, title_blue)
-        display.text("Game", int(width/6), int(height/16), 10, 8)
-        display.text("Over", int(width/16), int(height/2), 10, 8)
 
-
-def draw_background(display):
-    display.set_pen(0, 0, 0)
-    display.clear()
-    
-    
-def draw_game_objects(display):        
-    food.show(display)   
-    level.show(display) 
-    snake.show(display)
-
-
-def map_to_range(val, min_1, max_1, min_2, max_2):
-    if val <= min_1:
-        return min_2
-    elif val >= max_1:
-        return max_2
-    else:
-        diff_1 = max_1 - min_1
-        ratio_1 = (val-min_1)/diff_1
-        
-        diff_2 = max_2 - min_2
-        ratio_2 = (ratio_1*diff_2) + min_2
-        
-        return ratio_2
-    
-
-def init_level():
-    global snake, food, score, level
-    level = Level(level_number)
-    snake = Snake()
-    food = Food()
-    score = 0    
-
-frameCount = 0
-score = 0
-
-base_refresh = 0.01
-
-countdown = 20
-cooldown = countdown
-
-min_skip, max_skip = 10, 2
-
-level_number = 0
-total_levels = 4
-
-game_state = {"title_screen": 0,
-              "level_name": 1,          
-              "lives_left": 2,
-              "playing": 3,              
-              "show_score": 4,
-              "game_over": 5}
-
-state = game_state['title_screen']
-
-
-while True:    
-    
-    frame_skip = int(map_to_range(score, 0, 50, min_skip, max_skip))
-    
-    if frameCount % frame_skip == 0:
-        pressed = update_inputs(display)
-        draw_background(display)
-        
-        if state == game_state['playing']:        
-                
-            draw_game_objects(display)            
+        if self.state == self.game_state['title_screen']:
+            display.text("PiCo", int(width/6), int(height/16), 10, 8)
+            display.text("Snake", int(width/16), int(height/2), 10, 8)
             
-            snake.update_direction(pressed)
-            new_head = snake.move()
-
-            if new_head.pos == food.pos:
-                score += 1
-                snake.push(new_head)
-                food.reset_position()
-                
-            elif (snake.moving() and (snake.contains(new_head.pos) or level.check_walls(new_head.pos))):
-                cooldown = 10                                    
-                state = game_state['show_score']
+        elif self.state == self.game_state['level_name']:    
+            display.text("Level", int(width/12), int(height/16), 10, 8)
+            display.text(str(self.level_number), int(7*width/16), int(height/2), 10, 8)
             
-            else:
-                snake.push(new_head)
-                snake.pop()
-                
+        elif self.state == self.game_state['lives_left']:    
+            display.text("Lives", int(width/12), int(height/16), 10, 8)
+            display.text(str(self.lives_left), int(width/16), int(height/2), 10, 8)
+            
+        elif self.state == self.game_state['show_score']:
+            self.draw_game_objects(display)
+            display.set_pen(title_red, title_green, title_blue)
+            display.text("SCORE", int(width/16), int(height/16), 10, 8)
+            display.text(str(self.score), int(2*width/5), int(height/2), 10, 8)
+        
+        elif self.state == self.game_state['game_over']:
+            self.draw_game_objects(display)
+            display.set_pen(title_red, title_green, title_blue)
+            display.text("Game", int(width/6), int(height/16), 10, 8)
+            display.text("Over", int(width/16), int(height/2), 10, 8)
+
+
+    def draw_background(self, display):
+        display.set_pen(0, 0, 0)
+        display.clear()
+        
+        
+    def draw_game_objects(self, display):        
+        self.food.show(display)   
+        self.level.show(display) 
+        self.snake.show(display)
+
+
+    def map_to_range(self, val, min_1, max_1, min_2, max_2):
+        if val <= min_1:
+            return min_2
+        elif val >= max_1:
+            return max_2
         else:
-            cooldown -= 1    
-            show_game_text(display)
+            diff_1 = max_1 - min_1
+            ratio_1 = (val-min_1)/diff_1
             
-            if cooldown <0:
-                cooldown = countdown
-                
-                if state == game_state['title_screen']: 
-                    lives_left = 3
-                    level_number = 0
-                    state = game_state['level_name']                 
-                
-                elif state == game_state['level_name']: 
-                    init_level()  
-                    state = game_state['lives_left']                        
-                        
-                elif state == game_state['lives_left']:   
-                    state = game_state['playing']            
-                        
-                elif state == game_state['show_score']:                             
-                    if score > 3:
-                        level_number += 1
-                        level_number %= total_levels
-                    else:                    
-                        lives_left -= 1
-                        
-                    if lives_left == 0:
-                        state = game_state['game_over']
-                    else:                        
-                        state = game_state['level_name'] 
-                
-                elif state == game_state['game_over']:           
-                     state = game_state['title_screen']
-
-        display.update()
+            diff_2 = max_2 - min_2
+            ratio_2 = (ratio_1*diff_2) + min_2
+            
+            return ratio_2
         
-    frameCount += 1
-    utime.sleep(base_refresh)
+
+    def init_level(self):
+        self.level = Level(self.level_number)
+        self.snake = Snake()
+        self.food = Food(self.snake, self.level)
+        self.score = 0    
+
+    def __init__(self):
+        self.pressed = {}
+        self.frameCount = 0
+        self.score = 0
+
+        self.base_refresh = 0.01
+
+        self.countdown = 20
+        self.cooldown = self.countdown
+
+        self.min_skip, self.max_skip = 10, 2
+
+        self.level_number = 0
+        self.total_levels = 4
+
+        self.game_state = {"title_screen": 0,
+                          "level_name": 1,          
+                          "lives_left": 2,
+                          "playing": 3,              
+                          "show_score": 4,
+                          "game_over": 5}
+
+        self.state = self.game_state['title_screen']
+        
+    def tick(self, display):
+        self.frame_skip = int(self.map_to_range(self.score, 0, 50, self.min_skip, self.max_skip))
+    
+        if self.frameCount % self.frame_skip == 0:
+            self.update_inputs(display)
+            self.draw_background(display)
+            
+            if self.state == self.game_state['playing']:        
+                    
+                self.draw_game_objects(display)            
+                
+                self.snake.update_direction(self.pressed)
+                new_head = self.snake.move()
+
+                if new_head.pos == self.food.pos:
+                    self.score += 1
+                    self.snake.push(new_head)
+                    self.food.reset_position()
+                    
+                elif (self.snake.moving() and (self.snake.contains(new_head.pos) or self.level.check_walls(new_head.pos))):
+                    self.cooldown = self.countdown                                 
+                    self.state = self.game_state['show_score']
+                
+                else:
+                    self.snake.push(new_head)
+                    self.snake.pop()
+                    
+            else:
+                self.cooldown -= 1    
+                self.show_game_text(display)
+                
+                if self.cooldown < 0:
+                    self.cooldown = self.countdown
+                    
+                    if self.state == self.game_state['title_screen']: 
+                        self.lives_left = 3
+                        self.level_number = 0
+                        self.state = self.game_state['level_name']                 
+                    
+                    elif self.state == self.game_state['level_name']: 
+                        self.init_level()  
+                        self.state = self.game_state['lives_left']                        
+                            
+                    elif self.state == self.game_state['lives_left']:   
+                        self.state = self.game_state['playing']            
+                            
+                    elif self.state == self.game_state['show_score']:                             
+                        if self.score > 3:
+                            self.level_number += 1
+                            self.level_number %= self.total_levels
+                        else:                    
+                            self.lives_left -= 1
+                            
+                        if self.lives_left == 0:
+                            self.state = self.game_state['game_over']
+                        else:                        
+                            self.state = self.game_state['level_name'] 
+                    
+                    elif self.state == self.game_state['game_over']:           
+                         self.state = self.game_state['title_screen']
+
+            display.update()
+            
+        self.frameCount += 1
+        utime.sleep(self.base_refresh)
+
+game = Game()
+while True:    
+    game.tick(display)
