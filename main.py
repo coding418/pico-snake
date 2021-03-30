@@ -23,85 +23,13 @@ wall_color  = (200, 0, 200)
 title_color = (255, 255, 0)
 score_color = (255, 255, 255)
 
-    
-class Level:
-    def __init__(self, level_number):
-        self.load_level(level_number)
-        
-        
-    # a Level consists of walls (co-ordinates of immovable blocks)
-    def load_level(self, level_number):
-        self.walls = []
-        
-        # level data loaded from file level-*.txt
-        filename = "level-" + str(level_number) + ".txt"
-        f = open(filename, "r")
-        lines = f.readlines()
-
-        # each '0' on a line represents a wall
-        for y, line in enumerate(lines):
-            for x, char in enumerate(line):
-                if 0 <= x < grid_w and 0 <= y < grid_h and char == '0':
-                    wall_pos = x, y
-                    self.walls.append(wall_pos)
-                    
-        f.close()
-        
-        
-    # check if position is in walls
-    def check_walls(self, pos):
-        for wall in self.walls:
-            if pos == wall:
-                return True
-        
-        return False
-        
-        
-    # draw wall graphics
-    def show(self, display):
-        wall_red, wall_blue, wall_green = wall_color
-        
-        for wall in self.walls:
-            grid_x, grid_y = wall
-            tile_x = grid_x * tile_size
-            tile_y = grid_y * tile_size
-            
-            display.set_pen(wall_red, wall_blue, wall_green)
-            display.rectangle(tile_x, tile_y, tile_size, tile_size)
-            display.set_pen(wall_red//2, wall_blue//2, wall_green//2)
-            display.rectangle(tile_x+2, tile_y+2, tile_size-4, tile_size-4)
-            
 
 
-class Food:
-    def __init__(self, snake, level):
-        self.reset_position(snake, level)
-        
-        
-    # sets new position for Food
-    def reset_position(self, snake, level):
-        new_pos = randint(0, grid_w-1), randint(0, grid_h-1)
-        
-        # re-calculate if random position inside snake or walls
-        while snake.contains(new_pos) or level.check_walls(new_pos):
-            new_pos = randint(0, grid_w-1), randint(0, grid_h-1)
-            
-        self.pos = new_pos
-
-
-    def show(self, display):
-        food_x, food_y = self.pos
-    
-        food_red, food_green, food_blue = food_color
-        display.set_pen(food_red, food_green, food_blue)
-    
-        # calculate center of tile on canvas
-        tile_x = (tile_size * food_x) + tile_size//2
-        tile_y = (tile_size * food_y) + tile_size//2
-        
-        radius = (tile_size-2)//2
-                
-        display.circle(tile_x, tile_y, radius)
+class SnakeNode:
+    def __init__(self, position=None, direction=None, next=None):
+        self.pos = position
+        self.dir = direction
+        self.next = next
 
 
 
@@ -190,19 +118,19 @@ class Snake:
                 
                 invisible = (abs(x1-x2)>1)or(abs(y1-y2)>1)
                 
-                x1 *= tile_size
-                y1 *= tile_size
+                if not invisible:                
+                    x1 *= tile_size
+                    y1 *= tile_size
+                    
+                    x2 *= tile_size
+                    y2 *= tile_size
+                    
+                    x1 += tile_size//2
+                    y1 += tile_size//2
+                    
+                    x2 += tile_size//2
+                    y2 += tile_size//2
                 
-                x2 *= tile_size
-                y2 *= tile_size
-                
-                x1 += tile_size//2
-                y1 += tile_size//2
-                
-                x2 += tile_size//2
-                y2 += tile_size//2
-                
-                if not invisible:
                     self.line(x1, y1, x2, y2)
                 
             else:
@@ -274,14 +202,6 @@ class Snake:
         
         display.rectangle(start_x, start_y, line_width, line_height)
         
-        
-        
-class SnakeNode:
-    def __init__(self, position=None, direction=None, next=None, prev=None):
-        self.pos = position
-        self.dir = direction
-        self.next = next
-
         
 
 class Game:        
@@ -473,7 +393,88 @@ class Game:
             ratio_2 = (ratio_1*diff_2) + min_2
             
             return ratio_2
+    
+    
+
+class Food:
+    def __init__(self, snake, level):
+        self.reset_position(snake, level)
         
+        
+    # sets new position for Food
+    def reset_position(self, snake, level):
+        new_pos = randint(0, grid_w-1), randint(0, grid_h-1)
+        
+        # re-calculate if random position inside snake or walls
+        while snake.contains(new_pos) or level.check_walls(new_pos):
+            new_pos = randint(0, grid_w-1), randint(0, grid_h-1)
+            
+        self.pos = new_pos
+
+
+    def show(self, display):
+        food_x, food_y = self.pos
+    
+        food_red, food_green, food_blue = food_color
+        display.set_pen(food_red, food_green, food_blue)
+    
+        # calculate center of tile on canvas
+        tile_x = (tile_size * food_x) + tile_size//2
+        tile_y = (tile_size * food_y) + tile_size//2
+        
+        radius = (tile_size-2)//2
+                
+        display.circle(tile_x, tile_y, radius)    
+
+
+
+class Level:
+    def __init__(self, level_number):
+        self.load_level(level_number)
+        
+        
+    # a Level consists of walls (co-ordinates of immovable blocks)
+    def load_level(self, level_number):
+        self.walls = []
+        
+        # level data loaded from file level-*.txt
+        filename = "level-" + str(level_number) + ".txt"
+        f = open(filename, "r")
+        lines = f.readlines()
+
+        # each '0' on a line represents a wall
+        for y, line in enumerate(lines):
+            for x, char in enumerate(line):
+                if 0 <= x < grid_w and 0 <= y < grid_h and char == '0':
+                    wall_pos = x, y
+                    self.walls.append(wall_pos)
+                    
+        f.close()
+        
+        
+    # check if position is in walls
+    def check_walls(self, pos):
+        for wall in self.walls:
+            if pos == wall:
+                return True
+        
+        return False
+        
+        
+    # draw wall graphics
+    def show(self, display):
+        wall_red, wall_blue, wall_green = wall_color
+        
+        for wall in self.walls:
+            grid_x, grid_y = wall
+            tile_x = grid_x * tile_size
+            tile_y = grid_y * tile_size
+            
+            display.set_pen(wall_red, wall_blue, wall_green)
+            display.rectangle(tile_x, tile_y, tile_size, tile_size)
+            display.set_pen(wall_red//2, wall_blue//2, wall_green//2)
+            display.rectangle(tile_x+2, tile_y+2, tile_size-4, tile_size-4)
+            
 
 
 # initialize game
