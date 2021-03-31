@@ -101,7 +101,7 @@ class Snake:
         return new_node
 
 
-    def show(self, display):
+    def show(self):
         snake_red, snake_green, snake_blue = snake_color
         display.set_pen(snake_red, snake_green, snake_blue)
         
@@ -209,13 +209,14 @@ class Game:
         self.pressed = {}
         self.frameCount = 0
         self.score = 0
+        self.target_score = 10
 
         self.base_refresh = 0.01
 
         self.countdown = 20
         self.cooldown = self.countdown
 
-        self.min_skip, self.max_skip = 10, 2
+        self.slow, self.fast = 12, 2
 
         self.level_number = 0
         self.total_levels = 4
@@ -239,16 +240,16 @@ class Game:
         
         
     # update game data
-    def tick(self, display):
-        self.frame_skip = int(self.map_to_range(self.score, 0, 50, self.min_skip, self.max_skip))
+    def tick(self):
+        self.frame_skip = int(self.map_to_range(self.score, 0, 50, self.slow, self.fast))
     
         if self.frameCount % self.frame_skip == 0:
-            self.update_inputs(display)
-            self.draw_background(display)
+            self.update_inputs()
+            self.draw_background()
             
             if self.state == self.game_state['playing']:        
                     
-                self.draw_game_objects(display)            
+                self.draw_game_objects()            
                 
                 self.snake.update_direction(self.pressed)
                 new_head = self.snake.move()
@@ -268,7 +269,7 @@ class Game:
                     
             else:
                 self.cooldown -= 1    
-                self.show_game_text(display)
+                self.show_game_text()
                 
                 if self.cooldown < 0:
                     self.cooldown = self.countdown
@@ -286,7 +287,7 @@ class Game:
                         self.state = self.game_state['playing']            
                             
                     elif self.state == self.game_state['show_score']:                             
-                        if self.score > 3:
+                        if self.score > self.target_score:
                             self.level_number += 1
                             self.level_number %= self.total_levels
                         else:                    
@@ -307,7 +308,7 @@ class Game:
         
         
     # user input button methods
-    def update_inputs(self, display):        
+    def update_inputs(self):        
         self.pressed['A'] = display.is_pressed(display.BUTTON_A)
         self.pressed['B'] = display.is_pressed(display.BUTTON_B)
         self.pressed['X'] = display.is_pressed(display.BUTTON_X)
@@ -319,18 +320,18 @@ class Game:
 
 
     # graphics methods
-    def draw_background(self, display):
+    def draw_background(self):
         display.set_pen(0, 0, 0)
         display.clear()
         
         
-    def draw_game_objects(self, display):        
-        self.food.show(display)   
-        self.level.show(display) 
-        self.snake.show(display)
+    def draw_game_objects(self):        
+        self.food.show()   
+        self.level.show() 
+        self.snake.show()
         
         
-    def show_game_text(self, display):
+    def show_game_text(self):
         title_red, title_green, title_blue = title_color
         display.set_pen(title_red, title_green, title_blue)
 
@@ -338,28 +339,39 @@ class Game:
             display.text("PiCo", int(width/6), int(height/16), 10, 8)
             display.text("Snake", int(width/16), int(height/2), 10, 8)
             
-        elif self.state == self.game_state['level_name']:    
-            display.text("Level", int(width/12), int(height/16), 10, 8)
+        elif self.state == self.game_state['level_name']:            
+            display.set_pen(150, 255, 255)   
+            display.text("Level", int(width/12), int(height/16), 10, 8)           
+            display.set_pen(255, 255, 255)
             display.text(str(self.level_number), int(7*width/16), int(height/2), 10, 8)
             
-        elif self.state == self.game_state['lives_left']:    
+        elif self.state == self.game_state['lives_left']:            
+            display.set_pen(0, 255, 0)
             display.text("Lives", int(width/12), int(height/16), 10, 8)
-            display.text(str(self.lives_left), int(width/16), int(height/2), 10, 8)
+            
+            if self.lives_left == 3:
+                display.set_pen(220, 220, 0)
+            elif self.lives_left == 2:
+                display.set_pen(220, 110, 0)
+            elif self.lives_left == 1:
+                display.set_pen(220, 0, 0)
+            
+            display.text(str(self.lives_left), int(14*width/16), int(height/2), 10, 8)
             
         elif self.state == self.game_state['show_score']:
-            self.draw_game_objects(display)
-            display.set_pen(title_red, title_green, title_blue)
+            self.draw_game_objects()
+            display.set_pen(255, 255, 255)
             display.text("SCORE", int(width/16), int(height/16), 10, 8)
             display.text(str(self.score), int(2*width/5), int(height/2), 10, 8)
         
         elif self.state == self.game_state['game_over']:
-            self.draw_game_objects(display)
-            display.set_pen(title_red, title_green, title_blue)
+            self.draw_game_objects()
+            display.set_pen(255, 255, 255)
             display.text("Game", int(width/6), int(height/16), 10, 8)
             display.text("Over", int(width/16), int(height/2), 10, 8)
 
 
-    def debug_pattern(self, display):
+    def debug_pattern(self):
         alternate_color = False
         
         for j in range(grid_h):        
@@ -412,7 +424,7 @@ class Food:
         self.pos = new_pos
 
 
-    def show(self, display):
+    def show(self):
         food_x, food_y = self.pos
     
         food_red, food_green, food_blue = food_color
@@ -462,7 +474,7 @@ class Level:
         
         
     # draw wall graphics
-    def show(self, display):
+    def show(self):
         wall_red, wall_blue, wall_green = wall_color
         
         for wall in self.walls:
@@ -482,4 +494,4 @@ game = Game()
 
 # run game loop
 while True:    
-    game.tick(display)
+    game.tick()
