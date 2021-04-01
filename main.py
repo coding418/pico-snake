@@ -38,23 +38,18 @@ class Snake:
         center_of_grid = grid_w//2, grid_h//2
         self.direction = (0, 0)
         self.head = SnakeNode(center_of_grid, self.direction)
-        self.length = 1
         
         
     def push(self, new_head):
         new_head.next, self.head = self.head, new_head
-        self.length += 1
         
         
     def pop(self):
         current_node = self.head        
         previous_node = None
         
-        num_times = 0
-        
         # loop through entire list of SnakeNodes
         while current_node.next != None:
-            num_times += 1
             previous_node = current_node
             current_node = current_node.next
             
@@ -63,16 +58,12 @@ class Snake:
         # if there is a previous_node (i.e. this is not the head node)
         if previous_node != None:
             previous_node.next = None # clear pointer to final node
-            self.length -= 1
         
     
-    def contains(self, position):        
-        num_times = 0
-        
+    def contains(self, position):         
         current_node = self.head
         
         while current_node != None:
-            num_times += 1
             if current_node.pos == position:
                 return True
             
@@ -107,10 +98,7 @@ class Snake:
         
         current_node = self.head
         
-        num_times = 0
-        
-        while current_node != None:    
-            num_times += 1        
+        while current_node != None:   
             if current_node != self.head:
                 
                 x1, y1 = current_node.pos
@@ -209,7 +197,7 @@ class Game:
         self.pressed = {}
         self.frameCount = 0
         self.score = 0
-        self.target_score = 10
+        self.target_score = 5
 
         self.base_refresh = 0.01
 
