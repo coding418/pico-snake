@@ -5,3 +5,4 @@ Snake Game in MicroPython for Raspberry Pi Pico
   <source src="pico-snake.mp4" type="video/mp4">
 </video>
 <a href="hello"> TEST</a>
+<img src="logo.png">
