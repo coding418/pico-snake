@@ -1,6 +1,7 @@
 # Pico Snake
-Snake Game written in MicroPython for Raspberry Pi Pico
+Written in MicroPython for Raspberry Pi Pico and Pimoroni Display
 
-<img src="./img/pico-snake.gif">
+## Previews
+![Pico Snake](./img/pico-snake.gif)
 
-<a href="./vid/pico-snake.mp4">Full Preview Video</a>
+[Long Preview](https://github.com/coding418/pico-snake/blob/main/vid/pico-snake.mp4?raw=true)
