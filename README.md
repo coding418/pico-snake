@@ -19,55 +19,53 @@ Written in MicroPython for Raspberry Pi Pico and Pimoroni Pico Display
 
 *  [Custom MicroPython Image by Pimoroni (includes picodisplay library)](https://github.com/pimoroni/pimoroni-pico/releases)
 
-## Design
+## Classes
+### Game
+* Manages the main game data and functionality.
+	* Attributes include: 
+		* score
+		* game states (e.g. title screen, playing, game over)  
+	* Methods include:
+		* initialize level data
+		* update game
+		* get user input
+		* draw game objects
 
-### Classes
-* Game
-	* Manages the main game data and functionality.
-		* Attributes include: 
-			* score
-			* game states (e.g. title screen, playing, game over)  
-		* Methods include:
-			* initialize level data
-			* update game
-			* get user input
-			* draw game objects
+### Snake
+* A singly-linked list to represent the Snake.
+	* Attributes include:
+		* pointer to "head" SnakeNode
+		* current direction
+	* Methods include:
+		* push new head node
+		* pop tail node
+		* check if co-ordinate occupied by a SnakeNode
+		* update direction
+		* draw Snake
 
-* Snake
-	* A singly-linked list to represent the Snake.
-		* Attributes include:
-			* pointer to "head" SnakeNode
-			* current direction
-		* Methods include:
-			* push new head node
-			* pop tail node
-			* check if co-ordinate occupied by a SnakeNode
-			* update direction
-			* draw Snake
+### SnakeNode
+* Single node in the Snake linked list. 
+	* Attributes:
+		* position
+		* direction
+		* pointer to next node in list
 
-* SnakeNode
-	* Single node in the Snake linked list. 
-		* Attributes:
-			* position
-			* direction
-			* pointer to next node in list
+### Food
+* Represents food for the Snake. 
+	* Attribute: 
+		* position
+	* Methods:
+		* draw food
+		* reset position to random location (always ensures new position is not inside Snake or walls)
 
-* Food
-	* Represents food for the Snake. 
-		* Attribute: 
-			* position
-		* Methods:
-			* draw food
-			* reset position to random location (always ensures new position is not inside Snake or walls)
-
-* Level
-	* Represents the game arena.
-		* Attribute:
-			* array of wall positions
-		* Methods:
-			* load wall positions from txt file
-			* draw walls
-			* check for collisions with walls
+### Level
+* Represents the game arena.
+	* Attribute:
+		* array of wall positions
+	* Methods:
+		* load wall positions from txt file
+		* draw walls
+		* check for collisions with walls
 
 
 ### Level Design
