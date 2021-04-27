@@ -17,7 +17,7 @@ Written in MicroPython for Raspberry Pi Pico and Pimoroni Pico Display
 
 ### Software:
 
-*  [Custom MicroPython Image by Pimoroni (includes picodisplay library)](https://github.com/pimoroni/pimoroni-pico/releases)
+*  [Custom MicroPython image by Pimoroni (includes picodisplay library)](https://github.com/pimoroni/pimoroni-pico/releases)
 
 ## Classes
 ### Game
@@ -70,8 +70,16 @@ Written in MicroPython for Raspberry Pi Pico and Pimoroni Pico Display
 
 ## Designing Levels
 * Each level is a 20x11 grid of cells.
-* Each cell in the grid can contain either a SnakeNode, a piece of Food, a wall, or nothing.
-	* The "positions" mentioned in the classes above are defined in terms of this grid of cells, i.e. from top-left (0, 0) to bottom-right (19, 10) 
+* Each cell in the grid can contain:
+	* a SnakeNode
+	* a piece of Food
+	* a wall
+	* nothing
+* The "positions" of SnakeNodes, Food, and walls are defined in terms of this grid of cells:
+	* `( 0,  0)` top-left 
+	* `( 0, 10)` top-right 
+	* `(19,  0)` bottom-left
+	* `(19, 10)` bottom-right 
 * Levels are designed through a txt file:
 	* Each line of the file represents a row in the grid.
 	* Each character in a line represents a cell in the grid.
