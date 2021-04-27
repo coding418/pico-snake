@@ -11,10 +11,10 @@ Written in MicroPython for Raspberry Pi Pico and Pimoroni Pico Display
 
 ### Requirements
 * Hardware:
-	* [Raspberry Pi Pico](http://raspberrypi.org)
-	* [Pimoroni Pico Display](http://pimoroni.org)
+[Raspberry Pi Pico](http://raspberrypi.org)
+[Pimoroni Pico Display](http://pimoroni.org)
 * Software:
-	* [MicroPython RP2040 Image](https://www.raspberrypi.org/documentation/rp2040/getting-started/#getting-started-with-micropython)
+[MicroPython RP2040 Image](https://www.raspberrypi.org/documentation/rp2040/getting-started/#getting-started-with-micropython)
 
 ### Classes
 * Game
