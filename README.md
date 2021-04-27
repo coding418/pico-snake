@@ -17,7 +17,7 @@ Written in MicroPython for Raspberry Pi Pico and Pimoroni Pico Display
 
 ### Software:
 
-[Custom MicroPython Image by Pimoroni (includes picodisplay library)](https://github.com/pimoroni/pimoroni-pico/releases)
+*  [Custom MicroPython Image by Pimoroni (includes picodisplay library)](https://github.com/pimoroni/pimoroni-pico/releases)
 
 ## Design
 
