@@ -7,18 +7,20 @@ Written in MicroPython for Raspberry Pi Pico and Pimoroni Pico Display
  ### Animated GIF Preview (12 fps)
 ![Pico Snake](./img/pico-snake.gif)
 
-## Design
 
-### Requirements
-#### Hardware:
+
+## Requirements
+### Hardware:
 
 [Raspberry Pi Pico](https://www.raspberrypi.org/products/raspberry-pi-pico/)
 
 [Pimoroni Pico Display](https://shop.pimoroni.com/products/pico-display-pack)
 
-#### Software:
+### Software:
 
-[MicroPython RP2040 Image](https://www.raspberrypi.org/documentation/rp2040/getting-started/#getting-started-with-micropython)
+[Custom MicroPython Image by Pimoroni](https://github.com/pimoroni/pimoroni-pico/releases)
+
+## Design
 
 ### Classes
 * Game
