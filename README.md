@@ -11,13 +11,13 @@ Written in MicroPython for Raspberry Pi Pico and Pimoroni Pico Display
 ## Requirements
 ### Hardware:
 
-[Raspberry Pi Pico](https://www.raspberrypi.org/products/raspberry-pi-pico/)
+*  [Raspberry Pi Pico](https://www.raspberrypi.org/products/raspberry-pi-pico/)
 
-[Pimoroni Pico Display](https://shop.pimoroni.com/products/pico-display-pack)
+*  [Pimoroni Pico Display](https://shop.pimoroni.com/products/pico-display-pack)
 
 ### Software:
 
-[Custom MicroPython Image by Pimoroni](https://github.com/pimoroni/pimoroni-pico/releases)
+[Custom MicroPython Image by Pimoroni (includes picodisplay library)](https://github.com/pimoroni/pimoroni-pico/releases)
 
 ## Design
 
