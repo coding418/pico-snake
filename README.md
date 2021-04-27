@@ -10,10 +10,14 @@ Written in MicroPython for Raspberry Pi Pico and Pimoroni Pico Display
 ## Design
 
 ### Requirements
-* Hardware:
-[Raspberry Pi Pico](http://raspberrypi.org)
-[Pimoroni Pico Display](http://pimoroni.org)
-* Software:
+#### Hardware:
+
+[Raspberry Pi Pico](https://www.raspberrypi.org/products/raspberry-pi-pico/)
+
+[Pimoroni Pico Display](https://shop.pimoroni.com/products/pico-display-pack)
+
+#### Software:
+
 [MicroPython RP2040 Image](https://www.raspberrypi.org/documentation/rp2040/getting-started/#getting-started-with-micropython)
 
 ### Classes
