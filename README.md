@@ -77,19 +77,20 @@ Written in MicroPython for Raspberry Pi Pico and Pimoroni Pico Display
 	* nothing
 * The "positions" of SnakeNodes, Food, and walls are defined in terms of this grid of cells:
 	* `( 0,  0)` top-left 
-	* `( 0, 10)` top-right 
-	* `(19,  0)` bottom-left
+	* `(19,  0)` top-right 
+	* `( 0, 10)` bottom-left
 	* `(19, 10)` bottom-right 
 * Levels are designed through a txt file:
-	* Each line of the file represents a row in the grid.
-	* Each character in a line represents a cell in the grid.
-* The first 20 characters of each of the first 11 lines represent the level grid
-	* any characters or lines outside of that are ignored
-* Extra parameters for each level could be easily added to the lines after line 11.
-	* For example, a target score for each level before proceeding to the next level (currently this is hardcoded as 5 for every level to simplify testing and debugging)
-* A '0' character (i.e. zero) represents a wall, a ' ' character (i.e. space) represents an empty cell in the grid. 
-	* Technically, any character other than '0' represents an empty cell since all other characters are currently ignored by the Level class.
-	* It would be relatively simple to add other types of walls or level objects using this system: they would simply be represented by another character.
+	* Each line represents a row
+	* Each character represents a cell
+* The first 20 chars of the first 11 lines comprise the grid
+	* any chars or lines outside that range are ignored
+	* extra parameters for each level could easily be added to lines after line 11:
+		* E.g. a target score to pass each level (currently hard-coded as 5 to simplify debugging)
+	* The '0' char (zero) represents a wall
+	* The ' ' char (space) represents an empty cell
+		* Currently any char other than '0' represents an empty cell since all other char are ignored
+		* It would be relatively simple to add different wall types or level objects since they could just be represented by another char
 
 For example, the file level-2.txt contains the following text:
 <pre>
