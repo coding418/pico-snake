@@ -61,7 +61,7 @@ Written in MicroPython for Raspberry Pi Pico and Pimoroni Pico Display
 			* reset position to random location (always ensures new position is not inside Snake or walls)
 
 * Level
-	* Represents the game area
+	* Represents the game arena.
 		* Attribute:
 			* array of wall positions
 		* Methods:
