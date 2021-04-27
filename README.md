@@ -41,7 +41,8 @@ Written in MicroPython for Raspberry Pi Pico and Pimoroni Pico Display
 		* pop tail node
 		* check if co-ordinate occupied by a SnakeNode
 		* update direction
-		* draw Snake
+		* draw entire Snake
+		* draw green line between two SnakeNodes
 
 ### SnakeNode
 * Single node in the Snake linked list. 
