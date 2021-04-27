@@ -68,7 +68,7 @@ Written in MicroPython for Raspberry Pi Pico and Pimoroni Pico Display
 		* check for collisions with walls
 
 
-### Level Design
+## Designing Levels
 * Each level is a 20x11 grid of cells.
 * Each cell in the grid can contain either a SnakeNode, a piece of Food, a wall, or nothing.
 * Levels are designed through a txt file:
