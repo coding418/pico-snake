@@ -111,3 +111,5 @@ For example, the file level-2.txt contains the following text:
 Which creates the following level:
 
 ![Level 2 - Pico Snake](./img/level-2.png)
+
+NOTE: This image is blurry because it is a zoomed in photo of a very small screen. The actual Pico display module is surprising sharp and clear.
