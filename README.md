@@ -65,5 +65,6 @@ The file level-2.txt contains the following text:
 00000          00000
 </pre>
 
-This creates the level below:
+Which creates the following level:
+
 ![Level 2 - Pico Snake](./img/level-2.png)
