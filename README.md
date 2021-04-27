@@ -71,7 +71,7 @@ Written in MicroPython for Raspberry Pi Pico and Pimoroni Pico Display
 ## Designing Levels
 * Each level is a 20x11 grid of cells.
 * Each cell in the grid can contain either a SnakeNode, a piece of Food, a wall, or nothing.
-	* The "positions" mentioned in the classes above are defined in terms of this grid of cells, i.e. from (0, 0) in the top-left to (19, 10) in the bottom-right
+	* The "positions" mentioned in the classes above are defined in terms of this grid of cells, i.e. from top-left (0, 0) to bottom-right (19, 10) 
 * Levels are designed through a txt file:
 	* Each line of the file represents a row in the grid.
 	* Each character in a line represents a cell in the grid.
