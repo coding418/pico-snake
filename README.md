@@ -9,12 +9,19 @@ Written in MicroPython for Raspberry Pi Pico and Pimoroni Pico Display
 
 ## Design
 
+### Requirements
+* Hardware:
+	* ![Raspberry Pi Pico](http://raspberrypi.org)
+	* ![Pimoroni Pico Display](http://pimoroni.org)
+* Software:
+	* ![MicroPython RP2040 Image](https://www.raspberrypi.org/documentation/rp2040/getting-started/#getting-started-with-micropython)
+
 ### Classes
 * Game
 	* Manages the main game data (e.g. score), states (e.g. title screen, playing, game over) and functionality (e.g. intialize level, update game, get input, draw game objects)
 
 * Snake
-	* A single-linked list to represent the Snake. Contains:
+	* A singly-linked list to represent the Snake. Contains:
 		* data about the Snake (e.g. pointer to "head" SnakeNode, current direction)
 		* methods (e.g. push new head node, pop tail node, check if a given co-ordinate is occupied by a SnakeNode, update direction, draw)
 
@@ -29,10 +36,10 @@ Written in MicroPython for Raspberry Pi Pico and Pimoroni Pico Display
 	* Loads level data from a txt file, stores the position of the walls inside each level, draws the walls, and checks if a position is inside the walls.
 	* Each level is a 20x11 grid.
 	* Each cell in the grid can contain either a SnakeNode, a piece of Food, a wall, or nothing.
-	* Levels are created in a txt file.
+	* Levels are designed through a txt file:
 		* Each line of the file represents a row in the grid.
-		* Each character in each line represents a cell in the grid.
+		* Each character in a line represents a cell in the grid.
 		* The first 20 characters of each of the first 11 lines represent the level grid (any characters or lines outside of that are ignored).
-		* A '0' character represents a wall, a ' ' character (i.e. e space) represents an empty cell in the grid. 
-			* Technically, any character other than '0' represents an empty cell since all other characters are ignored by the Level class.
+		* A '0' character represents a wall, a ' ' character (i.e. a space) represents an empty cell in the grid. 
+			* Technically, any character other than '0' represents an empty cell since all other characters are currently ignored by the Level class.
 			* It would be relatively simple to add other types of walls or level objects using this system: they would simply be represented by another character.
