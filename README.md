@@ -4,7 +4,7 @@ Written in MicroPython for Raspberry Pi Pico and Pimoroni Pico Display
 ## Animated GIF Preview (12 fps)
 ![Pico Snake](./img/pico-snake.gif)
 
-*  [Download Long MP4 Preview (2.5 MB)](https://github.com/coding418/pico-snake/blob/main/vid/pico-snake.mp4?raw=true)
+*  [Download Longer MP4 Preview (2.5 MB)](https://github.com/coding418/pico-snake/blob/main/vid/pico-snake.mp4?raw=true)
 
 
 
