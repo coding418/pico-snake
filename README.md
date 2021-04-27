@@ -79,6 +79,8 @@ Written in MicroPython for Raspberry Pi Pico and Pimoroni Pico Display
 * A '0' character (i.e. zero) represents a wall, a ' ' character (i.e. space) represents an empty cell in the grid. 
 	* Technically, any character other than '0' represents an empty cell since all other characters are currently ignored by the Level class.
 	* It would be relatively simple to add other types of walls or level objects using this system: they would simply be represented by another character.
+* Extra parameters for each level could be easily added to the lines after line 11.
+	* For example, a target score for that level (currently this is hardcoded as 5 for every level to simplify testing and debugging)
 
 For example, the file level-2.txt contains the following text:
 <pre>
