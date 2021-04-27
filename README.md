@@ -83,14 +83,14 @@ Written in MicroPython for Raspberry Pi Pico and Pimoroni Pico Display
 * Levels are designed through a txt file:
 	* Each line represents a row
 	* Each character represents a cell
-* The first 20 chars of the first 11 lines comprise the grid
-	* any chars or lines outside that range are ignored
-	* extra parameters for each level could easily be added to lines after line 11:
+* The first 20 chars of the first 11 lines comprise the grid:
+	* any chars or lines outside that range are currently ignored
+	* extra parameters for each level could easily be added after line 11:
 		* E.g. a target score to pass each level (currently hard-coded as 5 to simplify debugging)
 	* The '0' char (zero) represents a wall
 	* The ' ' char (space) represents an empty cell
-		* Currently any char other than '0' represents an empty cell since all other char are ignored
-		* It would be relatively simple to add different wall types or level objects since they could just be represented by another char
+		* Currently any char other than '0' represents an empty cell since all other chars are ignored
+		* It would be relatively simple to add different wall types or level objects since they would just be defined with another char
 
 For example, the file level-2.txt contains the following text:
 <pre>
