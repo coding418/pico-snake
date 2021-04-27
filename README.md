@@ -45,6 +45,18 @@ Written in MicroPython for Raspberry Pi Pico and Pimoroni Pico Display
 		* Each line of the file represents a row in the grid.
 		* Each character in a line represents a cell in the grid.
 		* The first 20 characters of each of the first 11 lines represent the level grid (any characters or lines outside of that are ignored).
-		* A '0' character represents a wall, a ' ' character (i.e. a space) represents an empty cell in the grid. 
+		* A '0' character (i.e. zero) represents a wall, a ' ' character (i.e. space) represents an empty cell in the grid. 
 			* Technically, any character other than '0' represents an empty cell since all other characters are currently ignored by the Level class.
 			* It would be relatively simple to add other types of walls or level objects using this system: they would simply be represented by another character.
+
+`00                00`
+`0                  0`
+`                    `
+`        0  0        `
+`      000  000      `
+`                    `
+`      000  000      `
+`        0  0        `
+`                    `
+`0                  0`
+`00                00`
