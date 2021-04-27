@@ -49,15 +49,15 @@ Written in MicroPython for Raspberry Pi Pico and Pimoroni Pico Display
 			* Technically, any character other than '0' represents an empty cell since all other characters are currently ignored by the Level class.
 			* It would be relatively simple to add other types of walls or level objects using this system: they would simply be represented by another character.
 <pre>
-`00                00`
-`0                  0`
-`                    `
-`        0  0        `
-`      000  000      `
-`                    `
-`      000  000      `
-`        0  0        `
-`                    `
-`0                  0`
-`00                00`
+00                00
+0                  0
+                    
+        0  0        
+      000  000      
+                    
+      000  000      
+        0  0        
+                    
+0                  0
+00                00
 </pre>
